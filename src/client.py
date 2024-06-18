@@ -12,16 +12,18 @@ class Client:
         self._userID = self.login(username, password)
     
     def connect(self) -> socket.socket:
-        pass
+        server = socket.socket()
+        server.connect((HOST, PORT))
+
+        return server
     
     def disconnect(self) -> None:
         self._server.close()
     
-    def sendMessage(self, message: str, channelID: int) -> None:
-        pass
-
-    def sendAction(self, actionID: int, *args, **kwargs) -> None:
-        pass
+    def sendAction(self, actionID: int, *args) -> None:
+        data = {'actionID': actionID, 'data': [*args]}
+        bytes = pickle.dumps(data)
+        self._server.sendall(bytes)
 
     def login(self, username: str, password: str) -> int:
         '''Logs into an account and returns the user id'''

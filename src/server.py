@@ -17,7 +17,7 @@ def sendMessage(connection: socket.socket, channelID: int) -> None:
 def saveMessage(message: tuple) -> None:
     pass
 
-def receiveMessage(otherConnection: socket.socket, message: tuple) -> None:
+def handleReceiveMessage(message: tuple) -> None:
     pass
 
 def handleConversationVisibility(channelID: int, user1Visibility: bool = None, user2Visibility: bool = None) -> None:
@@ -62,7 +62,8 @@ def serveClient(connection: socket.socket) -> None:
                actionIDs.REMOVE_CONVERSATION: handleConversationVisibility, 
                actionIDs.UPDATE_PROFILE: handleProfileUpdate,
                actionIDs.ADD_CONVERSATION: handleAddConversation, 
-               actionIDs.REGISTER: handleRegistration}
+               actionIDs.REGISTER: handleRegistration,
+               actionIDs.SENT_MESSAGE: handleReceiveMessage}
     
     while True:
         # NOTE all responses sent to and from the server will be dictionaries

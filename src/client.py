@@ -16,17 +16,19 @@ class Client:
     
     def disconnect(self) -> None:
         self._server.close()
-        pass
     
-    def sendMessage(message: str, channelID: int) -> None:
+    def sendMessage(self, message: str, channelID: int) -> None:
         pass
 
-    def sendAction(actionID: int, *args, **kwargs) -> None:
+    def sendAction(self, actionID: int, *args, **kwargs) -> None:
         pass
 
-    def login(username: str, password: str) -> int:
+    def login(self, username: str, password: str) -> int:
         '''Logs into an account and returns the user id'''
         pass
         
-    def receiveData() -> bytes:
+    def receiveMessages(self) -> list[tuple]:
+        pass
+    
+    def receiveProfileUpdates(self) -> list[tuple]:
         pass

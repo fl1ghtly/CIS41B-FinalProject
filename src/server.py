@@ -11,6 +11,9 @@ def sendStoredMessages(connection: socket.socket, channelID: int, amount=50) -> 
     # call sendMessage amount times
     pass
 
+def sendProfiles(connection: socket.socket) -> None:
+    pass
+
 def sendMessage(connection: socket.socket, channelID: int) -> None:
     pass
 
@@ -68,7 +71,8 @@ def serveClient(connection: socket.socket) -> None:
                actionIDs.ADD_CONVERSATION: handleAddConversation, 
                actionIDs.REGISTER: handleRegistration,
                actionIDs.SENT_MESSAGE: handleReceiveMessage,
-               actionIDs.REQUEST_MESSAGE_UPDATE: sendStoredMessages}
+               actionIDs.REQUEST_MESSAGE_UPDATE: sendStoredMessages,
+               actionIDs.REQUEST_PROFILE_UPDATE: sendProfiles}
     
     while True:
         # NOTE all responses sent to and from the server will be dictionaries

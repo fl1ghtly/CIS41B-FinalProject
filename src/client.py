@@ -55,4 +55,7 @@ class Client:
         return messages
     
     def receiveProfileUpdates(self) -> list[tuple]:
-        pass
+        '''Returns a list all profiles'''
+        response = self.sendAction(actionIDs.REQUEST_PROFILE_UPDATE)
+        profileData: list[tuple] = response['data']
+        return profileData

@@ -67,7 +67,8 @@ def serveClient(connection: socket.socket) -> None:
                actionIDs.UPDATE_PROFILE: handleProfileUpdate,
                actionIDs.ADD_CONVERSATION: handleAddConversation, 
                actionIDs.REGISTER: handleRegistration,
-               actionIDs.SENT_MESSAGE: handleReceiveMessage}
+               actionIDs.SENT_MESSAGE: handleReceiveMessage,
+               actionIDs.REQUEST_MESSAGE_UPDATE: sendStoredMessages}
     
     while True:
         # NOTE all responses sent to and from the server will be dictionaries

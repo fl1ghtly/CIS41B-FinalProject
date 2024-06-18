@@ -41,7 +41,6 @@ class Client:
                 break
             
         return data
-        
 
     def login(self, username: str, password: str) -> int | None:
         '''Logs into an account and returns the user id'''
@@ -51,7 +50,9 @@ class Client:
         return id
         
     def receiveMessages(self) -> list[tuple]:
-        pass
+        response = self.sendAction(actionIDs.REQUEST_MESSAGE_UPDATE)
+        messages: list[tuple] = response['data']
+        return messages
     
     def receiveProfileUpdates(self) -> list[tuple]:
         pass

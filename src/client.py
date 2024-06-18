@@ -20,10 +20,28 @@ class Client:
     def disconnect(self) -> None:
         self._server.close()
     
-    def sendAction(self, actionID: int, *args) -> None:
+    def sendAction(self, actionID: int, *args) -> dict:
         data = {'actionID': actionID, 'data': [*args]}
         bytes = pickle.dumps(data)
         self._server.sendall(bytes)
+        
+        response: dict = pickle.loads(self.getResponse(4096, 0.25))
+        return response
+        
+    def getResponse(self, size: int, timeout: float):
+        data = b''
+        self._server.settimeout(timeout)
+        while True:
+            try:
+                byte = self._server.recv(size)
+                if not byte:
+                    break
+                data += byte
+            except socket.timeout:    # stop asking for data when server stops responding
+                break
+            
+        return data
+        
 
     def login(self, username: str, password: str) -> int:
         '''Logs into an account and returns the user id'''

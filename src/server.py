@@ -39,7 +39,7 @@ def handleOpenConversation() -> None:
 def handleAddConversation() -> None:
     pass
 
-def getResponse(connection: socket.socket, size: int, timeout) -> bytes:
+def getResponse(connection: socket.socket, size: int, timeout: float) -> bytes:
     data = b''
     connection.settimeout(timeout)
     while True:

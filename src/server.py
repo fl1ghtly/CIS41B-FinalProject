@@ -1,18 +1,21 @@
 import socket
 import threading
 import pickle
-import sqlite3
 
-def checkOnlineClients() -> list[int]:
+def sendOnlineClients():
     pass
 
 def sendStoredMessages(connection: socket.socket, channelID: int, amount=50) -> None:
+    # call sendMessage amount times
     pass
 
 def sendMessage(connection: socket.socket, channelID: int) -> None:
     pass
 
 def saveMessage(message: tuple) -> None:
+    pass
+
+def receiveMessage(message: tuple, otherConnection: socket.socket) -> None:
     pass
 
 def changeConversationVisibility(channelID: int, user1Visibility: bool = None, user2Visibility: bool = None) -> None:

@@ -20,17 +20,23 @@ def saveMessage(message: tuple) -> None:
 def receiveMessage(otherConnection: socket.socket, message: tuple) -> None:
     pass
 
-def changeConversationVisibility(channelID: int, user1Visibility: bool = None, user2Visibility: bool = None) -> None:
+def handleConversationVisibility(channelID: int, user1Visibility: bool = None, user2Visibility: bool = None) -> None:
     pass
 
-def updateProfile(userID: int, name: str) -> None:
+def handleProfileUpdate(userID: int, name: str) -> None:
     pass
 
 def handleLogin(username: str, password: str) -> int | None:
     '''Validates login and returns a user id if valid or none if not'''
     pass
 
-def registerNewUser(username:str, password: str) -> None:
+def handleRegistration(username:str, password: str) -> None:
+    pass
+
+def handleOpenConversation() -> None:
+    pass
+
+def handleAddConversation() -> None:
     pass
 
 def getResponse(connection: socket.socket, size: int, timeout) -> bytes:
@@ -50,9 +56,23 @@ def getResponse(connection: socket.socket, size: int, timeout) -> bytes:
 
 def serveClient(connection: socket.socket) -> None:
     # Client sends a message declaring what action they will take
-    # Handle action
+    # Handle actions from the client
+    actions = {actionIDs.LOGIN: handleLogin, 
+               actionIDs.OPEN_PAST_CONVERSATION: handleOpenConversation,
+               actionIDs.REMOVE_CONVERSATION: handleConversationVisibility, 
+               actionIDs.UPDATE_PROFILE: handleProfileUpdate,
+               actionIDs.ADD_CONVERSATION: handleAddConversation, 
+               actionIDs.REGISTER: handleRegistration}
+    
     while True:
+        # NOTE all responses sent to and from the server will be dictionaries
         response = pickle.loads(getResponse(connection, 4096, 0.25))
+        actionID: int = response['actionID']
+        data: list = response['data']
+
+        returnValue = actions[actionID](*data)
+        
+        
         
 if __name__ == '__main__':
     with socket.socket() as s:

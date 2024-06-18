@@ -9,13 +9,13 @@ cur.execute('''CREATE TABLE MessageDB
                 timestamp INTEGER,
                 message TEXT)''')
 cur.execute('''CREATE TABLE UserDB
-                (user_id NOT NULL PRIMARY KEY UNIQUE
-                username TEXT
-                last_login INTEGER
+                (user_id NOT NULL PRIMARY KEY UNIQUE,
+                username TEXT,
+                last_login INTEGER,
                 password TEXT)''')
 cur.execute('''CREATE TABLE ChannelDB
-                (channel_id NOT NULL PRIMARY KEY UNIQUE
-                user1_id INTEGER
-                user2_id INTEGER
-                user1_display INTEGER
+                (channel_id NOT NULL PRIMARY KEY UNIQUE,
+                user1_id INTEGER,
+                user2_id INTEGER,
+                user1_display INTEGER,
                 user2_display INTEGER)''')

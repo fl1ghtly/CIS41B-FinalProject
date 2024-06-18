@@ -1,6 +1,7 @@
 import socket
 import threading
 import pickle
+import actionIDs
 
 def sendOnlineClients():
     pass
@@ -22,6 +23,10 @@ def changeConversationVisibility(channelID: int, user1Visibility: bool = None, u
     pass
 
 def updateProfile(userID: int, name: str) -> None:
+    pass
+
+def handleLogin(username: str, password: str) -> int | None:
+    '''Validates login and returns a user id if valid or none if not'''
     pass
 
 def serveClient(connection: socket.socket) -> None:

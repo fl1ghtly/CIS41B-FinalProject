@@ -28,7 +28,7 @@ class Client:
         response: dict = pickle.loads(self.getResponse(4096, 0.25))
         return response
         
-    def getResponse(self, size: int, timeout: float):
+    def getResponse(self, size: int, timeout: float) -> bytes:
         data = b''
         self._server.settimeout(timeout)
         while True:
@@ -43,9 +43,12 @@ class Client:
         return data
         
 
-    def login(self, username: str, password: str) -> int:
+    def login(self, username: str, password: str) -> int | None:
         '''Logs into an account and returns the user id'''
-        pass
+        response = self.sendAction(actionIDs.LOGIN, username, password)
+        id: int = response['data']
+        
+        return id
         
     def receiveMessages(self) -> list[tuple]:
         pass

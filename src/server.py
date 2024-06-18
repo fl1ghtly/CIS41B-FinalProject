@@ -52,7 +52,11 @@ def getResponse(connection: socket.socket, size: int, timeout: float) -> bytes:
             break
         
     return data
-    
+
+def sendResponse(connnection: socket.socket, *args) -> None:
+    data = {'data': [*args]}
+    byte = pickle.dumps(data)
+    connnection.sendall(byte)
 
 def serveClient(connection: socket.socket) -> None:
     # Client sends a message declaring what action they will take

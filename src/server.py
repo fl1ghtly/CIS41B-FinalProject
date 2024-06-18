@@ -6,9 +6,6 @@ import actionIDs
 HOST = 'localhost'
 PORT = 5553
 
-def sendOnlineClients():
-    pass
-
 def sendStoredMessages(connection: socket.socket, channelID: int, amount=50) -> None:
     # call sendMessage amount times
     pass

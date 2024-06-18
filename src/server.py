@@ -17,7 +17,7 @@ def sendMessage(connection: socket.socket, channelID: int) -> None:
 def saveMessage(message: tuple) -> None:
     pass
 
-def receiveMessage(message: tuple, otherConnection: socket.socket) -> None:
+def receiveMessage(otherConnection: socket.socket, message: tuple) -> None:
     pass
 
 def changeConversationVisibility(channelID: int, user1Visibility: bool = None, user2Visibility: bool = None) -> None:
@@ -33,11 +33,27 @@ def handleLogin(username: str, password: str) -> int | None:
 def registerNewUser(username:str, password: str) -> None:
     pass
 
+def getResponse(connection: socket.socket, size: int, timeout) -> bytes:
+    data = b''
+    connection.settimeout(timeout)
+    while True:
+        try:
+            byte = connection.recv(size)
+            if not byte:
+                break
+            data += byte
+        except socket.timeout:    # stop asking for data when server stops responding
+            break
+        
+    return data
+    
+
 def serveClient(connection: socket.socket) -> None:
     # Client sends a message declaring what action they will take
     # Handle action
-    pass
-
+    while True:
+        response = pickle.loads(getResponse(connection, 4096, 0.25))
+        
 if __name__ == '__main__':
     with socket.socket() as s:
         s.bind((HOST, PORT))

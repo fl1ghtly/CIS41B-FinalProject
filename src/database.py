@@ -1,40 +1,63 @@
 import sqlite3
+import time
 
 
-def saveMessage(message: str, userID: int, channelID: int) -> None:
-    '''saves message to MessageDB'''
-    # called by server.py - saveMessage
-    pass
+class database:
+    CUR = sqlite3.connect('server.db').cursor()
 
-def getMessage(channelID: int) -> tuple:
-    '''gets message from MessageDB based on channel id and return it to server.py'''
-    # called by server.py - sendMessage
-    pass
+    def saveMessage(message: str, userID: int, channelID: int) -> None:
+        '''saves message to MessageDB'''
+        # called by server.py - saveMessage
 
-def changeProfile(userID: int, name: str) -> None:
-    '''changes username in UserDB'''
-    # called by server.py - updateProfile
-    pass
+        database.CUR.execute('''INSERT INTO MessageDB (channel_id, user_id, timestamp, message) VALUES (?, ?, ?, ?)''', 
+                             (channelID, userID, time.time(), message))
 
-def addConversation(user1: int, user2: int) -> None:
-    # called by server.py - 
-    pass
+    def getMessage(channelID: int) -> list[tuple]:
+        '''gets message from MessageDB based on channel id and return it to server.py'''
+        # called by server.py - sendMessage
 
-def hideConversation(channelID: int, userID: int) -> None:
-    '''change user[]_display to 0 (false)'''
-    # called by server.py - changeConversationVisibility
-    pass
+        database.CUR.execute('''SELECT MessageDB.message WHERE channel_id = ?''', (channelID,))
+        return database.CUR.fetchall()[:200]
+        
+    def changeProfile(userID: int, name: str) -> None:
+        '''changes username in UserDB'''
+        # called by server.py - updateProfile
 
-def deleteConversation(channelID: int) ->None:
-    '''remove channel_id and associated messages from ChannelDB and MessageDB'''
-    ## called when both users decide to hide a conversation
-    pass
+        database.CUR.execute('''UPDATE UserDB SET username = ? WHERE user_id = ?''', (name, userID))
 
-def handleLogin(username: str, password: str) -> int | None:
-    '''check if username and password matches records in UserDB
-       returns an int if records match, none if recores does not match'''
-    # called by server.py - handleLogin
-    pass
+    def addConversation(user1: int, user2: int) -> None:
+        '''creates a new channel between user1 and user2'''
+        # called by server.py - 
+
+        database.CUR.execute('''INSERT INTO ChannelDB (user1_id, user2_id, user1_display, user2_display) VALUES (?, ?, ?, ?)''',
+                             (user1, user2, 1, 1))
+
+    def hideConversation(channelID: int, user1: bool | None, user2: bool | None) -> None:
+        '''change display status of user1 and/or user2'''
+        # called by server.py - changeConversationVisibility
+
+        if user1 == True:
+            database.CUR.execute('''UPDATE ChannelDB SET user1_display = 1 WHERE channel_id = ?''', (channelID,))
+        elif user1 == False:
+            database.CUR.execute('''UPDATE ChannelDB SET user1_display = 0 WHERE channel_id = ?''', (channelID,))
+
+        if user2 == True:
+            database.CUR.execute('''UPDATE ChannelDB SET user2_display = 1 WHERE channel_id = ?''', (channelID,))
+        elif user2 == False:
+            database.CUR.execute('''UPDATE ChannelDB SET user2_display = 0 WHERE channel_id = ?''', (channelID,))
+
+        database.CUR.execute('''SELECT * FROM ''')
+
+    def deleteConversation(channelID: int) -> None:
+        '''remove channel_id and associated messages from ChannelDB and MessageDB'''
+        # called when both users decide to hide a conversation
+        pass
+
+    def handleLogin(username: str, password: str) -> int | None:
+        '''check if username and password matches records in UserDB
+        returns an int if records match, none if recores does not match'''
+        # called by server.py - handleLogin
+        pass
 
 
 if __name__ == '__main__':
@@ -45,7 +68,7 @@ if __name__ == '__main__':
                     (message_id INTEGER NOT NULL PRIMARY KEY UNIQUE,
                     channel_id INTEGER,
                     user_id INTEGER,
-                    timestamp INTEGER,
+                    timestamp REAL,
                     message TEXT)''')
     
     cur.execute("DROP TABLE IF EXISTS UserDB")

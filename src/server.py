@@ -5,6 +5,7 @@ import actionIDs
 
 HOST = 'localhost'
 PORT = 5553
+TIMEOUT = 5
 
 def sendStoredMessages(connection: socket.socket, channelID: int, amount=50) -> None:
     # call sendMessage amount times
@@ -39,4 +40,15 @@ def serveClient(connection: socket.socket) -> None:
 
 if __name__ == '__main__':
     with socket.socket() as s:
-        pass
+        s.bind((HOST, PORT))
+        print(f'Server online at hostname: {HOST}, port: {PORT}')
+
+        s.listen()
+        
+        while True:
+            (clientSocket, address) = s.accept()
+            print(f'New Connection at address: {address}')
+
+            serveClient(clientSocket)
+            
+

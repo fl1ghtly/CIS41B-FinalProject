@@ -3,6 +3,9 @@ import threading
 import pickle
 import actionIDs
 
+HOST = 'localhost'
+PORT = 5553
+
 def sendOnlineClients():
     pass
 
@@ -27,6 +30,9 @@ def updateProfile(userID: int, name: str) -> None:
 
 def handleLogin(username: str, password: str) -> int | None:
     '''Validates login and returns a user id if valid or none if not'''
+    pass
+
+def registerNewUser(username:str, password: str) -> None:
     pass
 
 def serveClient(connection: socket.socket) -> None:

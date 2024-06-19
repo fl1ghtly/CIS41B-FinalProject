@@ -81,6 +81,13 @@ class Database:
         
         Database.CONN.commit()
         Database.CONN.close()
+        
+    def getChannelUsers(channelID: int) -> tuple[int, int]:
+        Database.CUR.execute('''
+                             SELECT user1_id, user2_id FROM ChannelDB WHERE
+                             channel_id = ?
+                             ''', (channelID, ))
+        return Database.CUR.fetchone()
 
 
 if __name__ == '__main__':

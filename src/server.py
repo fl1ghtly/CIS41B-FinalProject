@@ -28,13 +28,11 @@ class Server:
 
         return server
         
-    def sendNewMessages(self, userID: int, lastPollTime: float) -> None:
-        messages = Database.getMessages(lastPollTime)
-        self.sendResponse(userID, actionIDs.REQUEST_MESSAGE_UPDATE, messages)
+    def sendNewMessages(self, lastPollTime: float) -> list[tuple]:
+        return Database.getMessages(lastPollTime)
 
-    def sendProfiles(self, userID: int) -> None:
-        profiles = Database.getProfiles()
-        self.sendResponse(userID, actionIDs.REQUEST_PROFILE_UPDATE, profiles)
+    def sendProfiles(self) -> list[tuple]:
+        return Database.getProfiles()
 
     def handleReceiveMessage(self, message: tuple) -> None:
         Database.saveMessage(*message)
@@ -77,6 +75,7 @@ class Server:
     def sendResponse(self, userID: int, actionID: int = None, *args,) -> None:
         data = {'actionID': actionID, 'data': [*args]}
         byte = pickle.dumps(data)
+        # TODO set in try except statement
         connection = self._clients[userID]
         connection.sendall(byte)
 
@@ -93,17 +92,6 @@ class Server:
             actionIDs.SENT_MESSAGE: self.handleReceiveMessage,
             actionIDs.REQUEST_MESSAGE_UPDATE: self.sendNewMessages,
             actionIDs.REQUEST_PROFILE_UPDATE: self.sendProfiles}
-        requiresSending = {
-            actionIDs.LOGIN: False, 
-            actionIDs.OPEN_PAST_CONVERSATION: False,
-            actionIDs.REMOVE_CONVERSATION: False, 
-            actionIDs.UPDATE_PROFILE: False,
-            actionIDs.ADD_CONVERSATION: False, 
-            actionIDs.REGISTER: False,
-            actionIDs.SENT_MESSAGE: False,
-            actionIDs.REQUEST_MESSAGE_UPDATE: True,
-            actionIDs.REQUEST_PROFILE_UPDATE: True}
-        
         
         while True:
             # NOTE all responses sent to and from the server will be dictionaries
@@ -112,11 +100,10 @@ class Server:
             userID: int = response['userID']
             data: list = response['data']
 
-            if requiresSending[actionID]:
-                returnValue = actions[actionID](userID, *data)
-            else:
-                returnValue = actions[actionID](*data)
+            returnValue = actions[actionID](*data)
             
             if actionID == actionIDs.LOGIN:
                 with self._lock:
                     self._clients[returnValue] = connection
+                 
+            self.sendResponse(userID, actionID, returnValue)

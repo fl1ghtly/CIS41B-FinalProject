@@ -8,84 +8,102 @@ HOST = 'localhost'
 PORT = 5553
 TIMEOUT = 5
 
-def sendStoredMessages(connection: socket.socket, channelID: int, max=200) -> None:
-    # call sendMessage amount times
-    pass
+class Server:
+    def __init__(self) -> None:
+        self._serverSocket = self.startServer()
+        
+        while True:
+            (clientSocket, address) = self._serverSocket.accept()
+            print(f'New Connection at address: {address}')
 
-def sendProfiles(connection: socket.socket) -> None:
-    pass
+            self.serveClient(clientSocket)
 
-def sendMessage(connection: socket.socket, message: tuple) -> None:
-    pass
+    def startServer(self):
+        server = socket.socket()
+        server.bind((HOST, PORT))
+        print(f'Server online at hostname: {HOST}, port: {PORT}')
+        server.listen()
 
-def handleReceiveMessage(message: tuple) -> None:
-    userID: int = message[0]
-    text: str = message[1]
-    timestamp: float = message[2]
-    channelID: int = message[3]
+        return server
+        
+    def sendStoredMessages(self, connection: socket.socket, channelID: int, max=200) -> None:
+        # call sendMessage amount times
+        pass
 
-    Database.saveMessage(userID, text, timestamp, channelID)
+    def sendProfiles(self, connection: socket.socket) -> None:
+        pass
 
-def handleConversationVisibility(channelID: int, user1Visibility: bool = None, user2Visibility: bool = None) -> None:
-    pass
+    def sendMessage(self, connection: socket.socket, message: tuple) -> None:
+        pass
 
-def handleProfileUpdate(userID: int, name: str) -> None:
-    pass
+    def handleReceiveMessage(self, message: tuple) -> None:
+        userID: int = message[0]
+        text: str = message[1]
+        timestamp: float = message[2]
+        channelID: int = message[3]
 
-def handleLogin(username: str, password: str) -> int | None:
-    '''Validates login and returns a user id if valid or none if not'''
-    pass
+        Database.saveMessage(userID, text, timestamp, channelID)
 
-def handleRegistration(username:str, password: str) -> None:
-    pass
+    def handleConversationVisibility(self, channelID: int, user1Visibility: bool = None, user2Visibility: bool = None) -> None:
+        pass
 
-def handleOpenConversation() -> None:
-    pass
+    def handleProfileUpdate(self, userID: int, name: str) -> None:
+        pass
 
-def handleAddConversation() -> None:
-    pass
+    def handleLogin(self, username: str, password: str) -> int | None:
+        '''Validates login and returns a user id if valid or none if not'''
+        pass
 
-def getResponse(connection: socket.socket, size: int, timeout: float) -> bytes:
-    data = b''
-    connection.settimeout(timeout)
-    while True:
-        try:
-            byte = connection.recv(size)
-            if not byte:
+    def handleRegistration(self, username:str, password: str) -> None:
+        pass
+
+    def handleOpenConversation(self) -> None:
+        pass
+
+    def handleAddConversation(self) -> None:
+        pass
+
+    def getResponse(self, connection: socket.socket, size: int, timeout: float) -> bytes:
+        data = b''
+        connection.settimeout(timeout)
+        while True:
+            try:
+                byte = connection.recv(size)
+                if not byte:
+                    break
+                data += byte
+            except socket.timeout:    # stop asking for data when server stops responding
                 break
-            data += byte
-        except socket.timeout:    # stop asking for data when server stops responding
-            break
-        
-    return data
+            
+        return data
 
-def sendResponse(connnection: socket.socket, *args) -> None:
-    data = {'data': [*args]}
-    byte = pickle.dumps(data)
-    connnection.sendall(byte)
+    def sendResponse(self, connnection: socket.socket, *args) -> None:
+        data = {'data': [*args]}
+        byte = pickle.dumps(data)
+        connnection.sendall(byte)
 
-def serveClient(connection: socket.socket) -> None:
-    # Client sends a message declaring what action they will take
-    # Handle actions from the client
-    actions = {actionIDs.LOGIN: handleLogin, 
-               actionIDs.OPEN_PAST_CONVERSATION: handleOpenConversation,
-               actionIDs.REMOVE_CONVERSATION: handleConversationVisibility, 
-               actionIDs.UPDATE_PROFILE: handleProfileUpdate,
-               actionIDs.ADD_CONVERSATION: handleAddConversation, 
-               actionIDs.REGISTER: handleRegistration,
-               actionIDs.SENT_MESSAGE: handleReceiveMessage,
-               actionIDs.REQUEST_MESSAGE_UPDATE: sendStoredMessages,
-               actionIDs.REQUEST_PROFILE_UPDATE: sendProfiles}
-    
-    while True:
-        # NOTE all responses sent to and from the server will be dictionaries
-        response = pickle.loads(getResponse(connection, 4096, 0.25))
-        actionID: int = response['actionID']
-        data: list = response['data']
+    def serveClient(self, connection: socket.socket) -> None:
+        # Client sends a message declaring what action they will take
+        # Handle actions from the client
+        actions = {actionIDs.LOGIN: self.handleLogin, 
+                actionIDs.OPEN_PAST_CONVERSATION: self.handleOpenConversation,
+                actionIDs.REMOVE_CONVERSATION: self.handleConversationVisibility, 
+                actionIDs.UPDATE_PROFILE: self.handleProfileUpdate,
+                actionIDs.ADD_CONVERSATION: self.handleAddConversation, 
+                actionIDs.REGISTER: self.handleRegistration,
+                actionIDs.SENT_MESSAGE: self.handleReceiveMessage,
+                actionIDs.REQUEST_MESSAGE_UPDATE: self.sendStoredMessages,
+                actionIDs.REQUEST_PROFILE_UPDATE: self.sendProfiles}
+        
+        while True:
+            # NOTE all responses sent to and from the server will be dictionaries
+            response = pickle.loads(self.getResponse(connection, 4096, 0.25))
+            actionID: int = response['actionID']
+            data: list = response['data']
 
-        returnValue = actions[actionID](*data)
+            returnValue = actions[actionID](*data)
         
-        
+'''
 if __name__ == '__main__':
     with socket.socket() as s:
         s.bind((HOST, PORT))
@@ -98,5 +116,6 @@ if __name__ == '__main__':
             print(f'New Connection at address: {address}')
 
             serveClient(clientSocket)
+'''
             
 

@@ -8,7 +8,7 @@ HOST = 'localhost'
 PORT = 5553
 TIMEOUT = 5
 
-def sendStoredMessages(connection: socket.socket, channelID: int, amount=50) -> None:
+def sendStoredMessages(connection: socket.socket, channelID: int, max=200) -> None:
     # call sendMessage amount times
     pass
 
@@ -84,7 +84,6 @@ def serveClient(connection: socket.socket) -> None:
         data: list = response['data']
 
         returnValue = actions[actionID](*data)
-        
         
         
 if __name__ == '__main__':

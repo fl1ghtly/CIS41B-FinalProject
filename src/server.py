@@ -14,14 +14,16 @@ def sendStoredMessages(connection: socket.socket, channelID: int, amount=50) -> 
 def sendProfiles(connection: socket.socket) -> None:
     pass
 
-def sendMessage(connection: socket.socket, channelID: int) -> None:
-    pass
-
-def saveMessage(message: tuple) -> None:
+def sendMessage(connection: socket.socket, message: tuple) -> None:
     pass
 
 def handleReceiveMessage(message: tuple) -> None:
-    pass
+    userID: int = message[0]
+    text: str = message[1]
+    timestamp: float = message[2]
+    channelID: int = message[3]
+    # TODO call database save message func
+    # TODO send message to second user
 
 def handleConversationVisibility(channelID: int, user1Visibility: bool = None, user2Visibility: bool = None) -> None:
     pass

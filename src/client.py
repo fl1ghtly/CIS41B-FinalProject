@@ -59,3 +59,6 @@ class Client:
         response = self.sendAction(actionIDs.REQUEST_PROFILE_UPDATE)
         profileData: list[tuple] = response['data']
         return profileData
+    
+    def sendMessage(self, message: str, channelID: int) -> None:
+        self.sendAction(actionIDs.SENT_MESSAGE, (self._userID, message, time.time(), channelID))

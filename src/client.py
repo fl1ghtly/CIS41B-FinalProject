@@ -57,13 +57,14 @@ class Client:
         self.sendAction(actionIDs.REMOVE_CONVERSATION, channelID, self._userID, False)
     
     def updateProfile(self, name: str) -> None:
-        pass
+        self.sendAction(actionIDs.UPDATE_PROFILE, self._userID, name)
         
     def addConversation(self, otherUser: str) -> None:
         self.sendAction(actionIDs.ADD_CONVERSATION, self._userID, otherUser)
 
-    def register(self, username: str, password: str) -> None:
-        pass
+    def register(self, username: str, password: str) -> bool:
+        response: dict = self.sendAction(actionIDs.REGISTER, username, password)
+        return response['data']
     
     def sendMessage(self, message: str, channelID: int) -> None:
         self.sendAction(actionIDs.SENT_MESSAGE, (self._userID, message, time.time(), channelID))

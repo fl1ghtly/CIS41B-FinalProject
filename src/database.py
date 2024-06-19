@@ -6,12 +6,12 @@ class Database:
     CONN = sqlite3.connect('server.db')
     CUR = CONN.cursor()
 
-    def saveMessage(message: str, userID: int, channelID: int) -> None:
+    def saveMessage(message: str, userID: int, timestamp: float, channelID: int) -> None:
         '''saves message to MessageDB'''
         # called by server.py - saveMessage
 
         Database.CUR.execute('''INSERT INTO MessageDB (channel_id, user_id, timestamp, message) VALUES (?, ?, ?, ?)''', 
-                             (channelID, userID, time.time(), message))
+                             (channelID, userID, timestamp, message))
 
 
     def getMessage(channelID: int) -> list[tuple]:

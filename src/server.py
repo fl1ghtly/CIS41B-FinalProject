@@ -40,23 +40,25 @@ class Server:
         Database.saveMessage(*message)
 
     def handleConversationVisibility(self, channelID: int, user1Visibility: bool = None, user2Visibility: bool = None) -> None:
-        pass
+        Database.hideConversation(channelID, user1Visibility, user2Visibility)
 
     def handleProfileUpdate(self, userID: int, name: str) -> None:
-        pass
+        Database.changeProfile(userID, name)
 
     def handleLogin(self, username: str, password: str) -> int | None:
         '''Validates login and returns a user id if valid or none if not'''
         return Database.handleLogin(username, password)
 
-    def handleRegistration(self, username:str, password: str) -> None:
-        pass
+    def handleRegistration(self, username: str, password: str) -> bool:
+        return Database.registerUser(username, password)
+    
+    def handleOpenConversation(self, channelID: int) -> list[tuple]:
+        return Database.getChannelMessages(channelID)
 
-    def handleOpenConversation(self) -> None:
-        pass
+    def handleAddConversation(self, user1ID: int, user2Name: str) -> None:
+        user2ID = Database.getUserID(user2Name)
 
-    def handleAddConversation(self) -> None:
-        pass
+        Database.addConversation(user1ID, user2ID)
 
     def getResponse(self, connection: socket.socket, size: int, timeout: float) -> bytes:
         data = b''

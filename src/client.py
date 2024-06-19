@@ -63,3 +63,6 @@ class Client:
     
     def sendMessage(self, message: str, channelID: int) -> None:
         self.sendAction(actionIDs.SENT_MESSAGE, (self._userID, message, time.time(), channelID))
+
+    def addConversation(self, otherUser: str) -> None:
+        self.sendAction(actionIDs.ADD_CONVERSATION, self._userID, otherUser)

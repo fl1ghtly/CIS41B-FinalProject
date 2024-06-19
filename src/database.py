@@ -77,6 +77,17 @@ class Database:
         Database.CUR.execute('''DELETE FROM MessageDB WHERE channel_id = ?''', (channelID,))
         Database.CUR.execute('''DELETE FROM ChannelDB WHERE channel_id = ?''', (channelID))
 
+    # TODO add function to register a new user
+    def registerUser(username: str, password: str) -> bool:
+        # returns whether operation is succesful
+        # fails when someone else with the same username exists
+        
+        # called by server.py - handleRegistration
+        pass
+    
+    # TODO add function to get a specific user id given their username
+    def getUserID(username: str) -> int:
+        pass
 
     def handleLogin(username: str, password: str) -> int | None:
         '''check if username and password matches records in UserDB

@@ -2,7 +2,7 @@ import tkinter
 from database import database
 
 class MainGUI(tkinter.Tk):
-    # TODO continously request new message updates
+    # TODO continously request new message updates using client's receiveMessage func
     def __init__(self):
         # calls loginGUI
         pass

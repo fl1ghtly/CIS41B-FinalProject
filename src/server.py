@@ -28,20 +28,16 @@ class Server:
 
         return server
         
-    def sendNewMessages(self, connection: socket.socket, lastPollTime: float) -> None:
+    def sendNewMessages(self, userID: int, lastPollTime: float) -> None:
         messages = Database.getMessages(lastPollTime)
-        self.sendResponse(connection, messages)
+        self.sendResponse(userID, actionIDs.REQUEST_MESSAGE_UPDATE, messages)
 
-    def sendProfiles(self, connection: socket.socket) -> None:
-        pass
-
-    def sendMessage(self, connection: socket.socket, message: tuple) -> None:
-        pass
+    def sendProfiles(self, userID: int) -> None:
+        profiles = Database.getProfiles()
+        self.sendResponse(userID, actionIDs.REQUEST_PROFILE_UPDATE, profiles)
 
     def handleReceiveMessage(self, message: tuple) -> None:
         Database.saveMessage(*message)
-        
-        
 
     def handleConversationVisibility(self, channelID: int, user1Visibility: bool = None, user2Visibility: bool = None) -> None:
         pass
@@ -76,31 +72,48 @@ class Server:
             
         return data
 
-    def sendResponse(self, connnection: socket.socket, *args) -> None:
-        data = {'data': [*args]}
+    def sendResponse(self, userID: int, actionID: int = None, *args,) -> None:
+        data = {'actionID': actionID, 'data': [*args]}
         byte = pickle.dumps(data)
-        connnection.sendall(byte)
+        connection = self._clients[userID]
+        connection.sendall(byte)
 
     def serveClient(self, connection: socket.socket) -> None:
         # Client sends a message declaring what action they will take
         # Handle actions from the client
-        actions = {actionIDs.LOGIN: self.handleLogin, 
-                   actionIDs.OPEN_PAST_CONVERSATION: self.handleOpenConversation,
-                   actionIDs.REMOVE_CONVERSATION: self.handleConversationVisibility, 
-                   actionIDs.UPDATE_PROFILE: self.handleProfileUpdate,
-                   actionIDs.ADD_CONVERSATION: self.handleAddConversation, 
-                   actionIDs.REGISTER: self.handleRegistration,
-                   actionIDs.SENT_MESSAGE: self.handleReceiveMessage,
-                   actionIDs.REQUEST_MESSAGE_UPDATE: self.sendNewMessages,
-                   actionIDs.REQUEST_PROFILE_UPDATE: self.sendProfiles}
+        actions = {
+            actionIDs.LOGIN: self.handleLogin, 
+            actionIDs.OPEN_PAST_CONVERSATION: self.handleOpenConversation,
+            actionIDs.REMOVE_CONVERSATION: self.handleConversationVisibility, 
+            actionIDs.UPDATE_PROFILE: self.handleProfileUpdate,
+            actionIDs.ADD_CONVERSATION: self.handleAddConversation, 
+            actionIDs.REGISTER: self.handleRegistration,
+            actionIDs.SENT_MESSAGE: self.handleReceiveMessage,
+            actionIDs.REQUEST_MESSAGE_UPDATE: self.sendNewMessages,
+            actionIDs.REQUEST_PROFILE_UPDATE: self.sendProfiles}
+        requiresSending = {
+            actionIDs.LOGIN: False, 
+            actionIDs.OPEN_PAST_CONVERSATION: False,
+            actionIDs.REMOVE_CONVERSATION: False, 
+            actionIDs.UPDATE_PROFILE: False,
+            actionIDs.ADD_CONVERSATION: False, 
+            actionIDs.REGISTER: False,
+            actionIDs.SENT_MESSAGE: False,
+            actionIDs.REQUEST_MESSAGE_UPDATE: True,
+            actionIDs.REQUEST_PROFILE_UPDATE: True}
+        
         
         while True:
             # NOTE all responses sent to and from the server will be dictionaries
             response = pickle.loads(self.getResponse(connection, 4096, 0.25))
             actionID: int = response['actionID']
+            userID: int = response['userID']
             data: list = response['data']
 
-            returnValue = actions[actionID](*data)
+            if requiresSending[actionID]:
+                returnValue = actions[actionID](userID, *data)
+            else:
+                returnValue = actions[actionID](*data)
             
             if actionID == actionIDs.LOGIN:
                 with self._lock:

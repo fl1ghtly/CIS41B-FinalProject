@@ -32,7 +32,13 @@ class Database:
 
         Database.CUR.execute('''UPDATE UserDB SET username = ? WHERE user_id = ?''', (name, userID))
 
-
+    def getProfiles() -> list[tuple]:
+        '''return all profiles'''
+        # called by server.py - sendProfiles
+        
+        Database.CUR.execute('''SELECT user_id, username FROM UserDB''')
+        return Database.CUR.fetchall()
+    
     def addConversation(user1: int, user2: int) -> None:
         '''creates a new channel between user1 and user2'''
         # called by server.py - 

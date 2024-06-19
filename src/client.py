@@ -21,7 +21,7 @@ class Client:
         self._server.close()
     
     def sendAction(self, actionID: int, *args) -> dict:
-        data = {'actionID': actionID, 'data': [*args]}
+        data = {'actionID': actionID, 'userID': self._userID, 'data': [*args]}
         bytes = pickle.dumps(data)
         self._server.sendall(bytes)
         
@@ -51,6 +51,7 @@ class Client:
         
     def receiveMessages(self, lastPollTime: float) -> list[tuple]:
         response = self.sendAction(actionIDs.REQUEST_MESSAGE_UPDATE, lastPollTime)
+        # TODO check if the returned response is the correct one
         messages: list[tuple] = response['data']
         return messages
     

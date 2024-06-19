@@ -11,6 +11,8 @@ TIMEOUT = 5
 class Server:
     def __init__(self) -> None:
         self._serverSocket = self.startServer()
+        self._lock = threading.Lock()
+        self._clients = {}
         
         while True:
             (clientSocket, address) = self._serverSocket.accept()
@@ -18,7 +20,7 @@ class Server:
 
             self.serveClient(clientSocket)
 
-    def startServer(self):
+    def startServer(self) -> socket.socket:
         server = socket.socket()
         server.bind((HOST, PORT))
         print(f'Server online at hostname: {HOST}, port: {PORT}')
@@ -52,7 +54,7 @@ class Server:
 
     def handleLogin(self, username: str, password: str) -> int | None:
         '''Validates login and returns a user id if valid or none if not'''
-        pass
+        return Database.handleLogin(username, password)
 
     def handleRegistration(self, username:str, password: str) -> None:
         pass
@@ -86,14 +88,14 @@ class Server:
         # Client sends a message declaring what action they will take
         # Handle actions from the client
         actions = {actionIDs.LOGIN: self.handleLogin, 
-                actionIDs.OPEN_PAST_CONVERSATION: self.handleOpenConversation,
-                actionIDs.REMOVE_CONVERSATION: self.handleConversationVisibility, 
-                actionIDs.UPDATE_PROFILE: self.handleProfileUpdate,
-                actionIDs.ADD_CONVERSATION: self.handleAddConversation, 
-                actionIDs.REGISTER: self.handleRegistration,
-                actionIDs.SENT_MESSAGE: self.handleReceiveMessage,
-                actionIDs.REQUEST_MESSAGE_UPDATE: self.sendStoredMessages,
-                actionIDs.REQUEST_PROFILE_UPDATE: self.sendProfiles}
+                   actionIDs.OPEN_PAST_CONVERSATION: self.handleOpenConversation,
+                   actionIDs.REMOVE_CONVERSATION: self.handleConversationVisibility, 
+                   actionIDs.UPDATE_PROFILE: self.handleProfileUpdate,
+                   actionIDs.ADD_CONVERSATION: self.handleAddConversation, 
+                   actionIDs.REGISTER: self.handleRegistration,
+                   actionIDs.SENT_MESSAGE: self.handleReceiveMessage,
+                   actionIDs.REQUEST_MESSAGE_UPDATE: self.sendStoredMessages,
+                   actionIDs.REQUEST_PROFILE_UPDATE: self.sendProfiles}
         
         while True:
             # NOTE all responses sent to and from the server will be dictionaries
@@ -102,6 +104,10 @@ class Server:
             data: list = response['data']
 
             returnValue = actions[actionID](*data)
+            
+            if actionID == actionIDs.LOGIN:
+                with self._lock:
+                    self._clients[returnValue] = connection
         
 '''
 if __name__ == '__main__':

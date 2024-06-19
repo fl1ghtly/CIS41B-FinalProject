@@ -12,7 +12,7 @@ class Server:
     def __init__(self) -> None:
         self._serverSocket = self.startServer()
         self._lock = threading.Lock()
-        self._clients = {}
+        self._clients: dict[int, socket.socket] = {}
         
         while True:
             (clientSocket, address) = self._serverSocket.accept()
@@ -28,9 +28,9 @@ class Server:
 
         return server
         
-    def sendStoredMessages(self, connection: socket.socket, channelID: int, max=200) -> None:
-        # call sendMessage amount times
-        pass
+    def sendNewMessages(self, connection: socket.socket, lastPollTime: float) -> None:
+        messages = Database.getMessages(lastPollTime)
+        self.sendResponse(connection, messages)
 
     def sendProfiles(self, connection: socket.socket) -> None:
         pass
@@ -39,12 +39,9 @@ class Server:
         pass
 
     def handleReceiveMessage(self, message: tuple) -> None:
-        userID: int = message[0]
-        text: str = message[1]
-        timestamp: float = message[2]
-        channelID: int = message[3]
-
-        Database.saveMessage(userID, text, timestamp, channelID)
+        Database.saveMessage(*message)
+        
+        
 
     def handleConversationVisibility(self, channelID: int, user1Visibility: bool = None, user2Visibility: bool = None) -> None:
         pass
@@ -94,7 +91,7 @@ class Server:
                    actionIDs.ADD_CONVERSATION: self.handleAddConversation, 
                    actionIDs.REGISTER: self.handleRegistration,
                    actionIDs.SENT_MESSAGE: self.handleReceiveMessage,
-                   actionIDs.REQUEST_MESSAGE_UPDATE: self.sendStoredMessages,
+                   actionIDs.REQUEST_MESSAGE_UPDATE: self.sendNewMessages,
                    actionIDs.REQUEST_PROFILE_UPDATE: self.sendProfiles}
         
         while True:

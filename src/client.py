@@ -49,8 +49,8 @@ class Client:
         
         return id
         
-    def receiveMessages(self) -> list[tuple]:
-        response = self.sendAction(actionIDs.REQUEST_MESSAGE_UPDATE)
+    def receiveMessages(self, lastPollTime: float) -> list[tuple]:
+        response = self.sendAction(actionIDs.REQUEST_MESSAGE_UPDATE, lastPollTime)
         messages: list[tuple] = response['data']
         return messages
     

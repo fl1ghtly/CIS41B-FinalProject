@@ -14,14 +14,18 @@ class Database:
                              (channelID, userID, timestamp, message))
 
 
-    def getMessage(channelID: int) -> list[tuple]:
+    def getChannelMessages(channelID: int) -> list[tuple]:
         '''gets message from MessageDB based on channel id and return it to server.py'''
         # called by server.py - sendMessage
 
         Database.CUR.execute('''SELECT MessageDB.message WHERE channel_id = ? LIMIT 200''', (channelID,))
         return Database.CUR.fetchall()
         
-
+    def getMessages(oldestTime: float) -> list[tuple]:
+        '''return all messages until a given time'''
+        Database.CUR.execute('''SELECT * FROM MessageDB WHERE timestamp > ?''', (oldestTime, ))
+        return Database.CUR.fetchall()
+        
     def changeProfile(userID: int, name: str) -> None:
         '''changes username in UserDB'''
         # called by server.py - updateProfile

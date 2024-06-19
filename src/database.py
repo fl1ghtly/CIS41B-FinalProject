@@ -68,13 +68,13 @@ class Database:
         Database.CUR.execute('''DELETE FROM ChannelDB WHERE channel_id = ?''', (channelID))
 
 
-    def handleLogin(username: str, password: str) -> tuple[int] | None:
+    def handleLogin(username: str, password: str) -> int | None:
         '''check if username and password matches records in UserDB
         returns the userID that corresponds with the username and password if records match, none if recores does not match'''
         # called by server.py - handleLogin
 
         Database.CUR.execute('''SELECT user_id FROM UserDB WHERE username = ? AND password = ?''', (username, password))
-        return Database.CUR.fetchone()
+        return Database.CUR.fetchone()[0]
     
     def onServerClose():
         '''on server close, commit all changes made during runtime and close the Database'''

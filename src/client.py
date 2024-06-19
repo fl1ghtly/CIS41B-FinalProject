@@ -44,25 +44,39 @@ class Client:
 
     def login(self, username: str, password: str) -> int | None:
         '''Logs into an account and returns the user id'''
-        response = self.sendAction(actionIDs.LOGIN, username, password)
+        response: dict = self.sendAction(actionIDs.LOGIN, username, password)
         id: int = response['data']
         
         return id
+    
+    def openConversation(self, channelID: int) -> list[tuple]:
+        response: dict = self.sendAction(actionIDs.OPEN_PAST_CONVERSATION, channelID)
+        return response['data']
+    
+    def removeConversation(self, channelID: int):
+        self.sendAction(actionIDs.REMOVE_CONVERSATION, channelID, self._userID, False)
+    
+    def updateProfile(self, name: str) -> None:
+        pass
         
+    def addConversation(self, otherUser: str) -> None:
+        self.sendAction(actionIDs.ADD_CONVERSATION, self._userID, otherUser)
+
+    def register(self, username: str, password: str) -> None:
+        pass
+    
+    def sendMessage(self, message: str, channelID: int) -> None:
+        self.sendAction(actionIDs.SENT_MESSAGE, (self._userID, message, time.time(), channelID))
+
     def receiveMessages(self, lastPollTime: float) -> list[tuple]:
-        response = self.sendAction(actionIDs.REQUEST_MESSAGE_UPDATE, lastPollTime)
+        response: dict = self.sendAction(actionIDs.REQUEST_MESSAGE_UPDATE, lastPollTime)
         # TODO check if the returned response is the correct one
         messages: list[tuple] = response['data']
         return messages
     
     def receiveProfileUpdates(self) -> list[tuple]:
         '''Returns a list all profiles'''
-        response = self.sendAction(actionIDs.REQUEST_PROFILE_UPDATE)
+        response: dict = self.sendAction(actionIDs.REQUEST_PROFILE_UPDATE)
         profileData: list[tuple] = response['data']
         return profileData
     
-    def sendMessage(self, message: str, channelID: int) -> None:
-        self.sendAction(actionIDs.SENT_MESSAGE, (self._userID, message, time.time(), channelID))
-
-    def addConversation(self, otherUser: str) -> None:
-        self.sendAction(actionIDs.ADD_CONVERSATION, self._userID, otherUser)

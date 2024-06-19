@@ -2,6 +2,7 @@ import socket
 import threading
 import pickle
 import actionIDs
+from database import Database
 
 HOST = 'localhost'
 PORT = 5553
@@ -22,8 +23,8 @@ def handleReceiveMessage(message: tuple) -> None:
     text: str = message[1]
     timestamp: float = message[2]
     channelID: int = message[3]
-    # TODO call database save message func
-    # TODO send message to second user
+
+    Database.saveMessage(userID, text, timestamp, channelID)
 
 def handleConversationVisibility(channelID: int, user1Visibility: bool = None, user2Visibility: bool = None) -> None:
     pass

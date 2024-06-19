@@ -105,20 +105,3 @@ class Server:
             if actionID == actionIDs.LOGIN:
                 with self._lock:
                     self._clients[returnValue] = connection
-        
-'''
-if __name__ == '__main__':
-    with socket.socket() as s:
-        s.bind((HOST, PORT))
-        print(f'Server online at hostname: {HOST}, port: {PORT}')
-
-        s.listen()
-        
-        while True:
-            (clientSocket, address) = s.accept()
-            print(f'New Connection at address: {address}')
-
-            serveClient(clientSocket)
-'''
-            
-

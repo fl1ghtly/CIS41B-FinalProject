@@ -37,8 +37,8 @@ class Server:
     def handleReceiveMessage(self, message: tuple) -> None:
         Database.saveMessage(*message)
 
-    def handleConversationVisibility(self, channelID: int, user1Visibility: bool = None, user2Visibility: bool = None) -> None:
-        Database.hideConversation(channelID, user1Visibility, user2Visibility)
+    def handleConversationVisibility(self, channelID: int, userID: int, visibility: bool) -> None:
+        Database.hideConversation(channelID, userID, visibility)
 
     def handleProfileUpdate(self, userID: int, name: str) -> None:
         Database.changeProfile(userID, name)

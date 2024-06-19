@@ -47,10 +47,15 @@ class Database:
                              (user1, user2, 1, 1))
 
 
-    def hideConversation(channelID: int, user1: bool | None, user2: bool | None) -> None:
+    def hideConversation(channelID: int, userID: int, visibliity: bool) -> None:
         '''change display status of user1 and/or user2'''
         # called by server.py - changeConversationVisibility
 
+        # TODO instead of the old approach, check which id column the userID belongs to
+        # and modify their respective column using the visiblity argument
+        # e.g. if the userID appears in user1_id then modify the column user1_display
+        
+        """
         # if user1 value is bool, change conversation display
         if user1 == True:
             Database.CUR.execute('''UPDATE ChannelDB SET user1_display = 1 WHERE channel_id = ?''', (channelID,))
@@ -68,6 +73,8 @@ class Database:
         row = Database.CUR.fetchone()
         if row[0] == 0 and row[1] == 1:
             Database.deleteConversation(row[2])
+        """
+        pass
 
 
     def deleteConversation(channelID: int) -> None:

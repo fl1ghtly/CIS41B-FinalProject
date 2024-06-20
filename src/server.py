@@ -20,6 +20,7 @@ class Server:
             self.serveClient(clientSocket)
 
     def _startServer(self) -> socket.socket:
+        '''Start a server socket and have it listen. Returns the socket'''
         server = socket.socket()
         server.bind((HOST, PORT))
         print(f'Server online at hostname: {HOST}, port: {PORT}')
@@ -28,18 +29,23 @@ class Server:
         return server
         
     def sendNewMessages(self, lastPollTime: float) -> list[tuple]:
+        '''Return all messages since a given time'''
         return Database.getMessages(lastPollTime)
 
     def sendProfiles(self) -> list[tuple]:
+        '''Return all registered users'''
         return Database.getProfiles()
 
     def handleReceiveMessage(self, message: tuple) -> None:
+        '''Saves a message to the database'''
         Database.saveMessage(*message)
 
     def handleConversationVisibility(self, channelID: int, userID: int, visibility: bool) -> None:
+        '''Changes visibliity of a conversation for a user'''
         Database.hideConversation(channelID, userID, visibility)
 
     def handleProfileUpdate(self, userID: int, name: str) -> None:
+        '''Change the profile of a user'''
         Database.changeProfile(userID, name)
 
     def handleLogin(self, username: str, password: str) -> int | None:
@@ -47,17 +53,21 @@ class Server:
         return Database.handleLogin(username, password)
 
     def handleRegistration(self, username: str, password: str) -> bool:
+        '''Create a new account. Returns whether account creation is successful'''
         return Database.registerUser(username, password)
     
     def handleOpenConversation(self, channelID: int) -> list[tuple]:
+        '''Return all messages in a channel'''
         return Database.getChannelMessages(channelID)
 
     def handleAddConversation(self, user1ID: int, user2Name: str) -> None:
+        '''Create a new conversation between two users'''
         user2ID = Database.getUserID(user2Name)
 
         Database.addConversation(user1ID, user2ID)
 
     def serveClient(self, connection: socket.socket) -> None:
+        '''Handle a client's requests'''
         # Client sends a message declaring what action they will take
         # Handle actions from the client
         actions = {

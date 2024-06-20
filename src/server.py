@@ -8,7 +8,6 @@ HOST = 'localhost'
 PORT = 5553
 
 class Server:
-    HEADER_SIZE = 4
     def __init__(self) -> None:
         self._serverSocket = self._startServer()
         self._lock = threading.Lock()

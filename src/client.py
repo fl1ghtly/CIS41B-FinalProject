@@ -7,7 +7,6 @@ HOST = '127.0.0.1'
 PORT = 5553
 
 class Client:
-    HEADER_SIZE = 4
     def __init__(self) -> None:
         self._server = self._connect()
         self._userID = None

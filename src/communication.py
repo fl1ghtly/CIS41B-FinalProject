@@ -27,16 +27,14 @@ def getResponse(connection: socket.socket) -> dict | None:
     data: dict = pickle.loads(byte)
     return data
 
-def _sendHeader(connection: socket.socket, messageSize: int) -> None:
-    '''Sends a message header to defines the size of the message'''
-    toSend = messageSize.to_bytes(HEADER_SIZE, 'little')
-    connection.sendall(toSend)
-
 def sendResponse(connection: socket.socket, actionID: int = None, *args) -> None:
     '''Sends a response to a socket'''
     data = {'actionID': actionID, 'data': [*args]}
     byte = pickle.dumps(data)
 
-    _sendHeader(connection, len(byte))
+    # Send the message header first
+    header = len(byte).to_bytes(HEADER_SIZE, 'little')
+    connection.sendall(header)
     # TODO set in try except statement
+    # Send the message itself
     connection.sendall(byte)

@@ -89,19 +89,6 @@ class Server:
             actionIDs.REQUEST_MESSAGE_UPDATE: self.sendNewMessages,
             actionIDs.REQUEST_PROFILE_UPDATE: self.sendProfiles}
         
-        '''
-        readSockets, writeSockets, errorSockets = select.select([connection], [], [])
-
-        for socket in readSockets:
-            data = socket.recv(2)
-            if not data:
-                print('Client has disconnected')
-                break
-            
-            response = pickle.loads(data)
-            print(response)
-
-        '''
         while True:
             # NOTE all responses sent to and from the server will be dictionaries
             response = pickle.loads(self.getResponse(connection))

@@ -83,7 +83,7 @@ class Database:
         # called by hideConversationwhen both users decide to hide a conversation
 
         Database.CUR.execute('''DELETE FROM MessageDB WHERE channel_id = ?''', (channelID,))
-        Database.CUR.execute('''DELETE FROM ChannelDB WHERE channel_id = ?''', (channelID))
+        Database.CUR.execute('''DELETE FROM ChannelDB WHERE channel_id = ?''', (channelID,))
 
 
 
@@ -92,11 +92,11 @@ class Database:
            fails when someone else with teh same user name exists'''
         # called by server.py - handleRegistration
         
-        check = Database.CUR.execute('''SELECT * FROM UserDB WHERE username = ?''', (username))
+        check = Database.CUR.execute('''SELECT * FROM UserDB WHERE username = ?''', (username,))
         if check == None:
             return False
         else:
-            Database.CUR.execute('''INSERT INTO UserDB (username, last_login, password) VALUES (?, ?, ?, ?)''', (username, 0, password))
+            Database.CUR.execute('''INSERT INTO UserDB (username, last_login, password) VALUES (?, ?, ?)''', (username, 0, password))
             return True
     
 
@@ -114,8 +114,9 @@ class Database:
 
         Database.CUR.execute('''SELECT user_id FROM UserDB WHERE username = ? AND password = ?''', (username, password))
         data = Database.CUR.fetchone()
+        print(data)
         if data:
-            return Database.CUR.fetchone()[0]
+            return data[0]
         
         return None
     
@@ -145,7 +146,7 @@ if __name__ == '__main__':
     cur = conn.cursor()
     cur.execute("DROP TABLE IF EXISTS MessageDB")
     cur.execute('''CREATE TABLE MessageDB
-                    (message_id INTEGER NOT NULL PRIMARY KEY UNIQUE,
+                    (message_id INTEGER NOT NULL PRIMARY KEY,
                     channel_id INTEGER,
                     user_id INTEGER,
                     timestamp REAL,
@@ -153,14 +154,14 @@ if __name__ == '__main__':
     
     cur.execute("DROP TABLE IF EXISTS UserDB")
     cur.execute('''CREATE TABLE UserDB
-                    (user_id NOT NULL PRIMARY KEY UNIQUE,
+                    (user_id INTEGER NOT NULL PRIMARY KEY,
                     username TEXT,
                     last_login INTEGER,
                     password TEXT)''')
     
     cur.execute("DROP TABLE IF EXISTS ChannelDB")
     cur.execute('''CREATE TABLE ChannelDB
-                    (channel_id NOT NULL PRIMARY KEY UNIQUE,
+                    (channel_id INTEGER NOT NULL PRIMARY KEY,
                     user1_id INTEGER,
                     user2_id INTEGER,
                     user1_display INTEGER,

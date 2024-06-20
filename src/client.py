@@ -1,7 +1,7 @@
 import socket
-import pickle
 import time
 import actionIDs
+import communication
 
 HOST = '127.0.0.1'
 PORT = 5553
@@ -23,13 +23,8 @@ class Client:
         self._server.close()
     
     def sendAction(self, actionID: int, *args) -> dict:
-        data = {'actionID': actionID, 'userID': self._userID, 'data': [*args]}
-        dataBytes = pickle.dumps(data)
-
-        self.sendHeader(len(dataBytes))
-        self._server.sendall(dataBytes)
-        
-        response: dict = pickle.loads(self.getResponse())
+        communication.sendResponse(self._server, actionID, *args)
+        response: dict = communication.getResponse(self._server)
         return response
         
     def sendHeader(self, messageSizeBytes: int) -> None:
@@ -71,14 +66,12 @@ class Client:
     def receiveMessages(self, lastPollTime: float) -> list[tuple]:
         response: dict = self.sendAction(actionIDs.REQUEST_MESSAGE_UPDATE, lastPollTime)
         # TODO check if the returned response is the correct one
-        messages: list[tuple] = response['data']
-        return messages
+        return response['data']
     
     def receiveProfileUpdates(self) -> list[tuple]:
         '''Returns a list all profiles'''
         response: dict = self.sendAction(actionIDs.REQUEST_PROFILE_UPDATE)
-        profileData: list[tuple] = response['data']
-        return profileData
+        return response['data']
     
     def getUserID(self) -> int | None:
         return self._userID

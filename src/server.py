@@ -1,14 +1,13 @@
 import socket
 import threading
-import pickle
 import actionIDs
 from database import Database
+import communication
 
 HOST = 'localhost'
 PORT = 5553
 
 class Server:
-    HEADER_SIZE = 4
     def __init__(self) -> None:
         self._serverSocket = self._startServer()
         self._lock = threading.Lock()
@@ -58,23 +57,6 @@ class Server:
 
         Database.addConversation(user1ID, user2ID)
 
-    def getResponse(self, connection: socket.socket) -> bytes:
-        messageSize = int.from_bytes(connection.recv(Server.HEADER_SIZE), 'little')
-        data = connection.recv(messageSize)
-        return data
-    
-    def sendHeader(self, connection: socket.socket, messageSizeBytes: int) -> None:
-        toSend = messageSizeBytes.to_bytes(Server.HEADER_SIZE, 'little')
-        connection.sendall(toSend)
-
-    def sendResponse(self, connection: socket.socket, actionID: int = None, *args,) -> None:
-        data = {'actionID': actionID, 'data': [*args]}
-        byte = pickle.dumps(data)
-
-        self.sendHeader(connection, len(byte))
-        # TODO set in try except statement
-        connection.sendall(byte)
-
     def serveClient(self, connection: socket.socket) -> None:
         # Client sends a message declaring what action they will take
         # Handle actions from the client
@@ -91,7 +73,7 @@ class Server:
         
         while True:
             # NOTE all responses sent to and from the server will be dictionaries
-            response = pickle.loads(self.getResponse(connection))
+            response = communication.getResponse(connection)
 
             if not response:
                 print('Client has disconnected')
@@ -101,13 +83,12 @@ class Server:
             data: list = response['data']
 
             returnValue = actions[actionID](*data)
-            print(returnValue)
             
             if actionID == actionIDs.LOGIN:
                 with self._lock:
                     self._clients[returnValue] = connection
                  
-            self.sendResponse(connection, actionID, returnValue)
+            communication.sendResponse(connection, actionID, returnValue)
             
 if __name__ == '__main__':
     server = Server()

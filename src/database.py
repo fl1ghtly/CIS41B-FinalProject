@@ -113,7 +113,11 @@ class Database:
         # called by server.py - handleLogin
 
         Database.CUR.execute('''SELECT user_id FROM UserDB WHERE username = ? AND password = ?''', (username, password))
-        return Database.CUR.fetchone()[0]
+        data = Database.CUR.fetchone()
+        if data:
+            return Database.CUR.fetchone()[0]
+        
+        return None
     
 
 

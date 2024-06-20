@@ -1,13 +1,12 @@
 import socket
-import pickle
 import time
 import actionIDs
+import communication
 
 HOST = '127.0.0.1'
 PORT = 5553
 
 class Client:
-    HEADER_SIZE = 4
     def __init__(self) -> None:
         self._server = self._connect()
         self._userID = None
@@ -23,24 +22,10 @@ class Client:
         self._server.close()
     
     def sendAction(self, actionID: int, *args) -> dict:
-        data = {'actionID': actionID, 'userID': self._userID, 'data': [*args]}
-        dataBytes = pickle.dumps(data)
-
-        self.sendHeader(len(dataBytes))
-        self._server.sendall(dataBytes)
-        
-        response: dict = pickle.loads(self.getResponse())
+        communication.sendResponse(self._server, actionID, *args)
+        response: dict = communication.getResponse(self._server)
         return response
         
-    def sendHeader(self, messageSizeBytes: int) -> None:
-        toSend = messageSizeBytes.to_bytes(Client.HEADER_SIZE, 'little')
-        self._server.sendall(toSend)
-
-    def getResponse(self) -> bytes:
-        messageSize = int.from_bytes(self._server.recv(Client.HEADER_SIZE), 'little')
-        data = self._server.recv(messageSize)
-        return data
-
     def login(self, username: str, password: str) -> int | None:
         '''Logs into an account and returns the user id'''
         response: dict = self.sendAction(actionIDs.LOGIN, username, password)
@@ -71,14 +56,12 @@ class Client:
     def receiveMessages(self, lastPollTime: float) -> list[tuple]:
         response: dict = self.sendAction(actionIDs.REQUEST_MESSAGE_UPDATE, lastPollTime)
         # TODO check if the returned response is the correct one
-        messages: list[tuple] = response['data']
-        return messages
+        return response['data']
     
     def receiveProfileUpdates(self) -> list[tuple]:
         '''Returns a list all profiles'''
         response: dict = self.sendAction(actionIDs.REQUEST_PROFILE_UPDATE)
-        profileData: list[tuple] = response['data']
-        return profileData
+        return response['data']
     
     def getUserID(self) -> int | None:
         return self._userID
@@ -86,7 +69,7 @@ class Client:
 if __name__ == '__main__':
     client = Client()
     print(client.register('testing', 'password'))
-    #print(client.login('testing', 'password'))
+    print(client.login('testing', 'password'))
     while True:
         time.sleep(2)
         print('alive')

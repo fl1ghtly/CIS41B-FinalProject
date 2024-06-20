@@ -1,6 +1,5 @@
 import socket
 import threading
-import actionIDs
 from database import Database
 import communication
 
@@ -71,15 +70,15 @@ class Server:
         # Client sends a message declaring what action they will take
         # Handle actions from the client
         actions = {
-            actionIDs.LOGIN: self.handleLogin, 
-            actionIDs.OPEN_PAST_CONVERSATION: self.handleOpenConversation,
-            actionIDs.REMOVE_CONVERSATION: self.handleConversationVisibility, 
-            actionIDs.UPDATE_PROFILE: self.handleProfileUpdate,
-            actionIDs.ADD_CONVERSATION: self.handleAddConversation, 
-            actionIDs.REGISTER: self.handleRegistration,
-            actionIDs.SENT_MESSAGE: self.handleReceiveMessage,
-            actionIDs.REQUEST_MESSAGE_UPDATE: self.sendNewMessages,
-            actionIDs.REQUEST_PROFILE_UPDATE: self.sendProfiles}
+            communication.LOGIN: self.handleLogin, 
+            communication.OPEN_PAST_CONVERSATION: self.handleOpenConversation,
+            communication.REMOVE_CONVERSATION: self.handleConversationVisibility, 
+            communication.UPDATE_PROFILE: self.handleProfileUpdate,
+            communication.ADD_CONVERSATION: self.handleAddConversation, 
+            communication.REGISTER: self.handleRegistration,
+            communication.SENT_MESSAGE: self.handleReceiveMessage,
+            communication.REQUEST_MESSAGE_UPDATE: self.sendNewMessages,
+            communication.REQUEST_PROFILE_UPDATE: self.sendProfiles}
         
         while True:
             # NOTE all responses sent to and from the server will be dictionaries
@@ -94,7 +93,7 @@ class Server:
 
             returnValue = actions[actionID](*data)
             
-            if actionID == actionIDs.LOGIN:
+            if actionID == communication.LOGIN:
                 with self._lock:
                     self._clients[returnValue] = connection
                  

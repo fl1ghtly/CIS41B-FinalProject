@@ -3,6 +3,17 @@ import pickle
 
 HEADER_SIZE = 4
 
+# ActionIDs
+LOGIN = 0
+OPEN_PAST_CONVERSATION = 1
+REMOVE_CONVERSATION = 2
+UPDATE_PROFILE = 3
+ADD_CONVERSATION = 4
+REGISTER = 5
+SENT_MESSAGE = 6
+REQUEST_MESSAGE_UPDATE = 7
+REQUEST_PROFILE_UPDATE = 8
+
 def getResponse(connection: socket.socket) -> dict | None:
     '''Gets data from a socket'''
     # Get the message size from the header

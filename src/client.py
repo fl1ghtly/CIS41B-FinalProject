@@ -1,6 +1,5 @@
 import socket
 import time
-import actionIDs
 import communication
 
 HOST = '127.0.0.1'
@@ -31,47 +30,47 @@ class Client:
         
     def login(self, username: str, password: str) -> int | None:
         '''Logs into an account and returns the user id if successful'''
-        response: dict = self.sendAction(actionIDs.LOGIN, username, password)
+        response: dict = self.sendAction(communication.LOGIN, username, password)
         id: int = response['data']
         
         return id
     
     def openConversation(self, channelID: int) -> list[tuple]:
         '''Requests server for a channel's messages'''
-        response: dict = self.sendAction(actionIDs.OPEN_PAST_CONVERSATION, channelID)
+        response: dict = self.sendAction(communication.OPEN_PAST_CONVERSATION, channelID)
         return response['data']
     
     def removeConversation(self, channelID: int):
         '''Request server to hide a conversation'''
-        self.sendAction(actionIDs.REMOVE_CONVERSATION, channelID, self._userID, False)
+        self.sendAction(communication.REMOVE_CONVERSATION, channelID, self._userID, False)
     
     def updateProfile(self, name: str) -> None:
         '''Request server to update user's profile'''
-        self.sendAction(actionIDs.UPDATE_PROFILE, self._userID, name)
+        self.sendAction(communication.UPDATE_PROFILE, self._userID, name)
         
     def addConversation(self, otherUser: str) -> None:
         '''Request server to add a conversation with another user'''
-        self.sendAction(actionIDs.ADD_CONVERSATION, self._userID, otherUser)
+        self.sendAction(communication.ADD_CONVERSATION, self._userID, otherUser)
 
     def register(self, username: str, password: str) -> bool:
         '''Request server to create a new account. Returns whether
         account creation is successful'''
-        response: dict = self.sendAction(actionIDs.REGISTER, username, password)
+        response: dict = self.sendAction(communication.REGISTER, username, password)
         return response['data']
     
     def sendMessage(self, message: str, channelID: int) -> None:
         '''Sends a chat message to the server'''
-        self.sendAction(actionIDs.SENT_MESSAGE, (self._userID, message, time.time(), channelID))
+        self.sendAction(communication.SENT_MESSAGE, (self._userID, message, time.time(), channelID))
 
     def receiveMessages(self, lastPollTime: float) -> list[tuple]:
         '''Receive all new messages since a certain time'''
-        response: dict = self.sendAction(actionIDs.REQUEST_MESSAGE_UPDATE, lastPollTime)
+        response: dict = self.sendAction(communication.REQUEST_MESSAGE_UPDATE, lastPollTime)
         # TODO check if the returned response is the correct one
         return response['data']
     
     def receiveProfileUpdates(self) -> list[tuple]:
         '''Returns a list all profiles'''
-        response: dict = self.sendAction(actionIDs.REQUEST_PROFILE_UPDATE)
+        response: dict = self.sendAction(communication.REQUEST_PROFILE_UPDATE)
         return response['data']
     
     def getUserID(self) -> int | None:

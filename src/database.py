@@ -13,6 +13,7 @@ class Database:
         Database.CUR.execute('''INSERT INTO MessageDB (channel_id, user_id, timestamp, message) VALUES (?, ?, ?, ?)''', 
                              (channelID, userID, timestamp, message))
 
+    
 
     def getChannelMessages(channelID: int) -> list[tuple]:
         '''gets message from MessageDB based on channel id and return it to server.py'''
@@ -21,16 +22,23 @@ class Database:
         Database.CUR.execute('''SELECT MessageDB.message WHERE channel_id = ? LIMIT 200''', (channelID,))
         return Database.CUR.fetchall()
         
+        
+
     def getMessages(oldestTime: float) -> list[tuple]:
         '''return all messages until a given time'''
+
         Database.CUR.execute('''SELECT * FROM MessageDB WHERE timestamp > ?''', (oldestTime, ))
         return Database.CUR.fetchall()
         
+
+
     def changeProfile(userID: int, name: str) -> None:
         '''changes username in UserDB'''
         # called by server.py - updateProfile
 
         Database.CUR.execute('''UPDATE UserDB SET username = ? WHERE user_id = ?''', (name, userID))
+
+
 
     def getProfiles() -> list[tuple]:
         '''return all profiles'''
@@ -39,6 +47,8 @@ class Database:
         Database.CUR.execute('''SELECT user_id, username FROM UserDB''')
         return Database.CUR.fetchall()
     
+
+
     def addConversation(user1: int, user2: int) -> None:
         '''creates a new channel between user1 and user2'''
         # called by server.py - 
@@ -47,34 +57,25 @@ class Database:
                              (user1, user2, 1, 1))
 
 
+
+
     def hideConversation(channelID: int, userID: int, visibliity: bool) -> None:
         '''change display status of user1 and/or user2'''
         # called by server.py - changeConversationVisibility
+        # 1 = True, 0 = False
 
-        # TODO instead of the old approach, check which id column the userID belongs to
-        # and modify their respective column using the visiblity argument
-        # e.g. if the userID appears in user1_id then modify the column user1_display
-        
-        """
-        # if user1 value is bool, change conversation display
-        if user1 == True:
-            Database.CUR.execute('''UPDATE ChannelDB SET user1_display = 1 WHERE channel_id = ?''', (channelID,))
-        elif user1 == False:
-            Database.CUR.execute('''UPDATE ChannelDB SET user1_display = 0 WHERE channel_id = ?''', (channelID,))
+        row = Database.CUR.execute('''SELECT * FROM ChannelDB WHERE channel_id = ? AND (user1_id = ? OR user2_id = ?)''', (channelID, userID, userID)).fetchone()
+        if row[1] == userID:
+            if visibliity == True:
+                Database.CUR.execute('''UPDATE ChannelDB SET user1_display = 1 WHERE channel_id = ?''', (channelID,))
+            else:
+                Database.CUR.execute('''UPDATE ChannelDB SET user1_display = 0 WHERE channel_id = ?''', (channelID,))
+        else:
+            if visibliity == True:
+                Database.CUR.execute('''UPDATE ChannelDB SET user2_display = 1 WHERE channel_id = ?''', (channelID,))
+            else:
+                Database.CUR.execute('''UPDATE ChannelDB SET user2_display = 0 WHERE channel_id = ?''', (channelID,))
 
-        # if user2 value is bool, change conversation display
-        if user2 == True:
-            Database.CUR.execute('''UPDATE ChannelDB SET user2_display = 1 WHERE channel_id = ?''', (channelID,))
-        elif user2 == False:
-            Database.CUR.execute('''UPDATE ChannelDB SET user2_display = 0 WHERE channel_id = ?''', (channelID,))
-
-        # if both user display is set to 0 (false) delete the channel and corresponding messages
-        Database.CUR.execute('''SELECT user1_display, user2_display, channel_id FROM ChannelDB WHERE user1_id = ? AND user2_id = ?''', (user1, user2))
-        row = Database.CUR.fetchone()
-        if row[0] == 0 and row[1] == 1:
-            Database.deleteConversation(row[2])
-        """
-        pass
 
 
     def deleteConversation(channelID: int) -> None:
@@ -84,17 +85,27 @@ class Database:
         Database.CUR.execute('''DELETE FROM MessageDB WHERE channel_id = ?''', (channelID,))
         Database.CUR.execute('''DELETE FROM ChannelDB WHERE channel_id = ?''', (channelID))
 
-    # TODO add function to register a new user
+
+
     def registerUser(username: str, password: str) -> bool:
-        # returns whether operation is succesful
-        # fails when someone else with the same username exists
-        
+        '''registers a new user in the database, returns if the operation is successful
+           fails when someone else with teh same user name exists'''
         # called by server.py - handleRegistration
-        pass
+        
+        check = Database.CUR.execute('''SELECT * FROM UserDB WHERE username = ?''', (username))
+        if check == None:
+            return False
+        else:
+            Database.CUR.execute('''INSERT INTO UserDB (username, last_login, password) VALUES (?, ?, ?, ?)''', (username, 0, password))
+            return True
     
-    # TODO add function to get a specific user id given their username
+
+
     def getUserID(username: str) -> int:
-        pass
+        userID = Database.CUR.execute('''SELECT user_id FROM UserDB WHERE username = ?''', (username,)).fetchone()
+        return userID[0]
+
+
 
     def handleLogin(username: str, password: str) -> int | None:
         '''check if username and password matches records in UserDB
@@ -104,18 +115,25 @@ class Database:
         Database.CUR.execute('''SELECT user_id FROM UserDB WHERE username = ? AND password = ?''', (username, password))
         return Database.CUR.fetchone()[0]
     
+
+
     def onServerClose():
         '''on server close, commit all changes made during runtime and close the Database'''
         
         Database.CONN.commit()
         Database.CONN.close()
         
+
+
     def getChannelUsers(channelID: int) -> tuple[int, int]:
+        '''get the two user ids who's using the given channelID'''
+
         Database.CUR.execute('''
                              SELECT user1_id, user2_id FROM ChannelDB WHERE
                              channel_id = ?
                              ''', (channelID, ))
         return Database.CUR.fetchone()
+
 
 
 if __name__ == '__main__':

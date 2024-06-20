@@ -140,6 +140,22 @@ class Database:
                              channel_id = ?
                              ''', (channelID, ))
         return Database.CUR.fetchone()
+    
+
+
+    def getUsernames(userID: int) -> list[str]:
+        '''get the usernames of everyone who has conversed with the given userID'''
+
+        # fetch all the user1_id and user2_ids tuples that match with userID
+        userIDs = Database.CUR.execute('''SELECT user1_id, user2_id FROM ChannelDB WHERE user1_id = ? OR user2_id = ?''', (userID, userID)).fetchall()
+        # filter to get the ids that is not the given userID
+        # this means the ids we get are the ids that the given userID has conversed with
+        ids = [id for idTuple in userIDs for id in idTuple if id != userID]
+        # get the usernames of all the ids
+        usernames = [Database.CUR.execute('''SELECT username FROM UserDB WHERE user_id = ?''', (id,)).fetchone()[0] for id in ids]
+        # return the list of usernames
+        return usernames
+
 
 
 

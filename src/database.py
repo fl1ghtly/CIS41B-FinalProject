@@ -64,13 +64,14 @@ class Database:
         # called by server.py - changeConversationVisibility
         # 1 = True, 0 = False
 
+        # get the entire row where channelID and userID matches
         row = Database.CUR.execute('''SELECT * FROM ChannelDB WHERE channel_id = ? AND (user1_id = ? OR user2_id = ?)''', (channelID, userID, userID)).fetchone()
-        if row[1] == userID:
+        if row[1] == userID: # if user1_id matches userID...
             if visibliity == True:
                 Database.CUR.execute('''UPDATE ChannelDB SET user1_display = 1 WHERE channel_id = ?''', (channelID,))
             else:
                 Database.CUR.execute('''UPDATE ChannelDB SET user1_display = 0 WHERE channel_id = ?''', (channelID,))
-        else:
+        else: # if user2_id matches userID...
             if visibliity == True:
                 Database.CUR.execute('''UPDATE ChannelDB SET user2_display = 1 WHERE channel_id = ?''', (channelID,))
             else:
@@ -89,15 +90,16 @@ class Database:
 
     def registerUser(username: str, password: str) -> bool:
         '''registers a new user in the database, returns if the operation is successful
-           fails when someone else with teh same user name exists'''
+           fails when someone else with the same username exists'''
         # called by server.py - handleRegistration
         
-        check = Database.CUR.execute('''SELECT * FROM UserDB WHERE username = ?''', (username,))
-        if check == None:
-            return False
-        else:
+        # fetch one database entry that matches the passed in username
+        check = Database.CUR.execute('''SELECT * FROM UserDB WHERE username = ?''', (username,)).fetchone()
+        if check == None: # if nothing was fetched, put the username and password into the database
             Database.CUR.execute('''INSERT INTO UserDB (username, last_login, password) VALUES (?, ?, ?)''', (username, 0, password))
             return True
+        else: # if something was fetched, someone already chose that username, fail the operation
+            return False
     
 
 
@@ -132,7 +134,7 @@ class Database:
 
     def getChannelUsers(channelID: int) -> tuple[int, int]:
         '''get the two user ids who's using the given channelID'''
-
+        
         Database.CUR.execute('''
                              SELECT user1_id, user2_id FROM ChannelDB WHERE
                              channel_id = ?

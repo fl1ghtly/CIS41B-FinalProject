@@ -65,6 +65,10 @@ class Server:
 
         Database.addConversation(user1ID, user2ID)
 
+    def sendUsernames(self, userID: int) -> list[str]:
+        '''Returns the list of usernames the given userID has conversed with'''
+        return Database.getUsernames(userID)
+
     def serveClient(self, connection: socket.socket) -> None:
         '''Handle a client's requests'''
         # Client sends a message declaring what action they will take
@@ -78,7 +82,8 @@ class Server:
             communication.REGISTER: self.handleRegistration,
             communication.SENT_MESSAGE: self.handleReceiveMessage,
             communication.REQUEST_MESSAGE_UPDATE: self.sendNewMessages,
-            communication.REQUEST_PROFILE_UPDATE: self.sendProfiles}
+            communication.REQUEST_PROFILE_UPDATE: self.sendProfiles,
+            communication.REQUEST_USERNAMES: self.sendUsernames}
         
         while True:
             # NOTE all responses sent to and from the server will be dictionaries

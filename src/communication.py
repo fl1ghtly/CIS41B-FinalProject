@@ -13,6 +13,7 @@ REGISTER = 5
 SENT_MESSAGE = 6
 REQUEST_MESSAGE_UPDATE = 7
 REQUEST_PROFILE_UPDATE = 8
+REQUEST_USERNAMES = 9
 
 def getResponse(connection: socket.socket) -> dict | None:
     '''Gets data from a socket'''

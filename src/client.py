@@ -7,13 +7,15 @@ HOST = '127.0.0.1'
 PORT = 5553
 
 class Client:
-    def __init__(self, username: str, password: str) -> None:
-        self._server = self.connect()
-        self._userID = self.login(username, password)
+    HEADER_SIZE = 4
+    def __init__(self) -> None:
+        self._server = self._connect()
+        self._userID = None
     
-    def connect(self) -> socket.socket:
+    def _connect(self) -> socket.socket:
         server = socket.socket()
         server.connect((HOST, PORT))
+        print(f'Client connected to: {HOST}, {PORT}')
 
         return server
     
@@ -22,24 +24,21 @@ class Client:
     
     def sendAction(self, actionID: int, *args) -> dict:
         data = {'actionID': actionID, 'userID': self._userID, 'data': [*args]}
-        bytes = pickle.dumps(data)
-        self._server.sendall(bytes)
+        dataBytes = pickle.dumps(data)
+
+        self.sendHeader(len(dataBytes))
+        self._server.sendall(dataBytes)
         
-        response: dict = pickle.loads(self.getResponse(4096, 0.25))
+        response: dict = pickle.loads(self.getResponse())
         return response
         
-    def getResponse(self, size: int, timeout: float) -> bytes:
-        data = b''
-        self._server.settimeout(timeout)
-        while True:
-            try:
-                byte = self._server.recv(size)
-                if not byte:
-                    break
-                data += byte
-            except socket.timeout:    # stop asking for data when server stops responding
-                break
-            
+    def sendHeader(self, messageSizeBytes: int) -> None:
+        toSend = messageSizeBytes.to_bytes(Client.HEADER_SIZE, 'little')
+        self._server.sendall(toSend)
+
+    def getResponse(self) -> bytes:
+        messageSize = int.from_bytes(self._server.recv(Client.HEADER_SIZE), 'little')
+        data = self._server.recv(messageSize)
         return data
 
     def login(self, username: str, password: str) -> int | None:
@@ -81,3 +80,12 @@ class Client:
         profileData: list[tuple] = response['data']
         return profileData
     
+if __name__ == '__main__':
+    client = Client()
+    print(client.register('testing', 'password'))
+    #print(client.login('testing', 'password'))
+    while True:
+        time.sleep(2)
+        print('alive')
+    
+    #client.disconnect()

@@ -6,11 +6,11 @@ from database import Database
 
 HOST = 'localhost'
 PORT = 5553
-TIMEOUT = 5
 
 class Server:
+    HEADER_SIZE = 4
     def __init__(self) -> None:
-        self._serverSocket = self.startServer()
+        self._serverSocket = self._startServer()
         self._lock = threading.Lock()
         self._clients: dict[int, socket.socket] = {}
         
@@ -20,7 +20,7 @@ class Server:
 
             self.serveClient(clientSocket)
 
-    def startServer(self) -> socket.socket:
+    def _startServer(self) -> socket.socket:
         server = socket.socket()
         server.bind((HOST, PORT))
         print(f'Server online at hostname: {HOST}, port: {PORT}')
@@ -58,25 +58,21 @@ class Server:
 
         Database.addConversation(user1ID, user2ID)
 
-    def getResponse(self, connection: socket.socket, size: int, timeout: float) -> bytes:
-        data = b''
-        connection.settimeout(timeout)
-        while True:
-            try:
-                byte = connection.recv(size)
-                if not byte:
-                    break
-                data += byte
-            except socket.timeout:    # stop asking for data when server stops responding
-                break
-            
+    def getResponse(self, connection: socket.socket) -> bytes:
+        messageSize = int.from_bytes(connection.recv(Server.HEADER_SIZE), 'little')
+        data = connection.recv(messageSize)
         return data
+    
+    def sendHeader(self, connection: socket.socket, messageSizeBytes: int) -> None:
+        toSend = messageSizeBytes.to_bytes(Server.HEADER_SIZE, 'little')
+        connection.sendall(toSend)
 
-    def sendResponse(self, userID: int, actionID: int = None, *args,) -> None:
+    def sendResponse(self, connection: socket.socket, actionID: int = None, *args,) -> None:
         data = {'actionID': actionID, 'data': [*args]}
         byte = pickle.dumps(data)
+
+        self.sendHeader(connection, len(byte))
         # TODO set in try except statement
-        connection = self._clients[userID]
         connection.sendall(byte)
 
     def serveClient(self, connection: socket.socket) -> None:
@@ -93,17 +89,38 @@ class Server:
             actionIDs.REQUEST_MESSAGE_UPDATE: self.sendNewMessages,
             actionIDs.REQUEST_PROFILE_UPDATE: self.sendProfiles}
         
+        '''
+        readSockets, writeSockets, errorSockets = select.select([connection], [], [])
+
+        for socket in readSockets:
+            data = socket.recv(2)
+            if not data:
+                print('Client has disconnected')
+                break
+            
+            response = pickle.loads(data)
+            print(response)
+
+        '''
         while True:
             # NOTE all responses sent to and from the server will be dictionaries
-            response = pickle.loads(self.getResponse(connection, 4096, 0.25))
+            response = pickle.loads(self.getResponse(connection))
+
+            if not response:
+                print('Client has disconnected')
+                break
+            
             actionID: int = response['actionID']
-            userID: int = response['userID']
             data: list = response['data']
 
             returnValue = actions[actionID](*data)
+            print(returnValue)
             
             if actionID == actionIDs.LOGIN:
                 with self._lock:
                     self._clients[returnValue] = connection
                  
-            self.sendResponse(userID, actionID, returnValue)
+            self.sendResponse(connection, actionID, returnValue)
+            
+if __name__ == '__main__':
+    server = Server()

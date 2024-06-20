@@ -26,15 +26,6 @@ class Client:
         response: dict = communication.getResponse(self._server)
         return response
         
-    def sendHeader(self, messageSizeBytes: int) -> None:
-        toSend = messageSizeBytes.to_bytes(Client.HEADER_SIZE, 'little')
-        self._server.sendall(toSend)
-
-    def getResponse(self) -> bytes:
-        messageSize = int.from_bytes(self._server.recv(Client.HEADER_SIZE), 'little')
-        data = self._server.recv(messageSize)
-        return data
-
     def login(self, username: str, password: str) -> int | None:
         '''Logs into an account and returns the user id'''
         response: dict = self.sendAction(actionIDs.LOGIN, username, password)
@@ -78,7 +69,7 @@ class Client:
 if __name__ == '__main__':
     client = Client()
     print(client.register('testing', 'password'))
-    #print(client.login('testing', 'password'))
+    print(client.login('testing', 'password'))
     while True:
         time.sleep(2)
         print('alive')

@@ -80,6 +80,9 @@ class Client:
         profileData: list[tuple] = response['data']
         return profileData
     
+    def getUserID(self) -> int | None:
+        return self._userID
+
 if __name__ == '__main__':
     client = Client()
     print(client.register('testing', 'password'))

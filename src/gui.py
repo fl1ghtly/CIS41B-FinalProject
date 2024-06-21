@@ -15,7 +15,8 @@ class MainGUI(tk.Toplevel):
         self._username = username
 
         # create labels to welcome the user 
-        tk.Label(self, text=f"Welcome {self._username}", font=("Courier New", "20", "bold")).grid(row=0, column=0, padx=10, pady=10, columnspan=2)
+        self._nameLabel = tk.Label(self, text=f"Welcome {self._username}", font=("Courier New", "20", "bold"))
+        self._nameLabel.grid(row=0, column=0, padx=10, pady=10, columnspan=2)
         tk.Label(self, text="Past conversations", font=("Courier New", "12")).grid(row=1, column=0, padx=10, pady=10)
 
         # create frame to grid listbox and scrollbar
@@ -128,6 +129,7 @@ class MainGUI(tk.Toplevel):
 
         def enter(event):
             username = entryText.get()
+            usernameEntry.delete(0, tk.END)
             userID = self._client.receiveUserID(username)
             if userID != None:
                 self._client.addConversation(username)
@@ -135,9 +137,11 @@ class MainGUI(tk.Toplevel):
                 createWin.destroy()
             else:
                 tkmb.showerror("Error", "Invalid username, please double check and try again")
+                createWin.focus_set()
 
         createWin = tk.Toplevel(self)
         createWin.title("Open New Conversation")
+        createWin.focus_set()
         entryText = tk.StringVar()
 
         tk.Label(createWin, text="Type in a valid username", font=("Courier New", 10)).grid(padx=10, pady=10, columnspan=2)
@@ -150,7 +154,41 @@ class MainGUI(tk.Toplevel):
 
     def _changeNickname(self) -> None:
         '''changes the user's nickname'''
-        pass
+
+        # define enter function for when user clicks enter key
+        def enter(event):
+            # get the nickname
+            nickname = entryText.get()
+            if nickname not in nickList: # if the nickname isn't a duplicate...
+                # update user's nickname in database
+                self._client.updateProfile(nickname)
+                # update instance variable
+                self._username = nickname
+                # update self._nameLabel to match new username
+                self._nameLabel.config(text=f"Welcome {self._username}")
+                # destroy nickWin
+                nickWin.destroy()
+            else: # if the nickname is a duplicate
+                tkmb.showerror("Error", "Duplicate nickname, please choose another nickname")
+                nickWin.focus_set()
+
+        # create a window for changing nickname
+        nickWin = tk.Toplevel(self)
+        nickWin.title("Change Nickname")
+        nickWin.focus_set()
+        
+        # get the list of tuples of all userIDs and usernames
+        users = self._client.receiveProfileUpdates()
+        # get all the usernames
+        nickList: list[str] = [user[1] for user in users]
+        entryText = tk.StringVar()
+
+        # populate nickWin
+        tk.Label(nickWin, text="Type in a new username", font=("Courier New", 10)).grid(padx=10, pady=10, columnspan=2)
+        tk.Label(nickWin, text="New Nickname:").grid(row=1, column=0, padx=10, pady=10)
+        nicknameEntry = tk.Entry(nickWin, textvariable=entryText)
+        nicknameEntry.bind("<Return>", enter)
+        nicknameEntry.grid(row=1, column=1, padx=10)
 
 
 

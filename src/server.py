@@ -85,7 +85,7 @@ class Server:
         '''Returns the channelID that matches with user1ID and user2ID'''
         return Database.getChannelID(user1ID, user2ID)
     
-    def sendUserID(self, username: str) -> int:
+    def sendUserID(self, username: str) -> int | None:
         '''Returns the corresponding userID given the username'''
         return Database.getUserID(username)
 

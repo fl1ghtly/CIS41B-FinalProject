@@ -114,7 +114,7 @@ class Database:
     
 
 
-    def getUserID(username: str) -> int:
+    def getUserID(username: str) -> int | None:
         userID = Database.CUR.execute('''SELECT user_id FROM UserDB WHERE username = ?''', (username,)).fetchone()
         return userID[0]
 

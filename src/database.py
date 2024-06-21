@@ -154,7 +154,13 @@ class Database:
         usernames = [Database.CUR.execute('''SELECT username, user_id FROM UserDB WHERE user_id = ?''', (id,)).fetchone() for id in ids]
         # return the list of usernames
         return dict(zip(usernames, ids))
+    
 
+
+    def getChannelID(user1ID: int, user2ID: int) -> int:
+        '''get the channelID that matches with user1ID and user2ID'''
+
+        return Database.CUR.execute('''SELECT channel_id FROM ChannelDB WHERE user1_id = ? AND user2_id = ?''', (user1ID, user2ID)).fetchone()[0]
 
 
 

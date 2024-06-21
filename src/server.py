@@ -80,6 +80,10 @@ class Server:
     def sendUsernames(self, userID: int) -> dict[str:int]:
         '''Returns the list of usernames and user ids the given userID has conversed with'''
         return Database.getUsernames(userID)
+    
+    def sendChannelID(self, user1ID: int, user2ID: int) -> int:
+        '''Returns the channelID that matches with user1ID and user2ID'''
+        return Database.getChannelID(user1ID, user2ID)
 
     def serveClient(self, connection: socket.socket) -> None:
         '''Handle a client's requests'''

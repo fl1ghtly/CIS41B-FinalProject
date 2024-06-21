@@ -67,7 +67,7 @@ class Server:
         '''Create a new account. Returns whether account creation is successful'''
         return Database.registerUser(username, password)
     
-    def handleOpenConversation(self, channelID: int) -> list[tuple]:
+    def handleOpenConversation(self, channelID: int) -> list[tuple[str, float]]:
         '''Return all messages in a channel'''
         return Database.getChannelMessages(channelID)
 

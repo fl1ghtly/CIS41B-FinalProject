@@ -1,9 +1,9 @@
 import sqlite3
-import time
-
+import os
 
 class Database:
-    CONN = sqlite3.connect('C:/Users/tonyb/OneDrive/Documents/school/homework/advanced python/CIS41B-FinalProject/data/server.db')
+    PATH = os.path.realpath(os.path.join(os.getcwd(), './data/server.db'))
+    CONN = sqlite3.connect(PATH)
     CUR = CONN.cursor()
 
     def saveMessage(message: str, userID: int, timestamp: float, channelID: int) -> None:

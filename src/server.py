@@ -11,12 +11,14 @@ class Server:
         self._serverSocket = self._startServer()
         self._lock = threading.Lock()
         self._clients: dict[int, socket.socket] = {}
+        self._threads: list[threading.Thread] = []
         
         while True:
             (clientSocket, address) = self._serverSocket.accept()
             print(f'New Connection at address: {address}')
-
-            self.serveClient(clientSocket)
+            thread = threading.Thread(target=self.serveClient, args=(clientSocket, ))
+            self._threads.append(thread)
+            thread.start()
 
     def _startServer(self) -> socket.socket:
         '''Start a server socket and have it listen. Returns the socket'''
@@ -26,10 +28,15 @@ class Server:
         server.listen()
 
         return server
-        
+    
     def endServer(self) -> None:
         '''Closes the server and saves any changes made to the database'''
-        Database.onServerClose()
+        with self._lock:
+            Database.onServerClose()
+
+        for thread in self._threads:
+            thread.join()
+
         self._serverSocket.close()
         
     def sendNewMessages(self, lastPollTime: float) -> list[tuple]:
@@ -101,7 +108,8 @@ class Server:
             actionID: int = response['actionID']
             data: list = response['data']
 
-            returnValue = actions[actionID](*data)
+            with self._lock:
+                returnValue = actions[actionID](*data)
             
             if actionID == communication.LOGIN:
                 with self._lock:

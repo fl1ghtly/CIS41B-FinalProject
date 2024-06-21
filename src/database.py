@@ -3,7 +3,7 @@ import os
 
 class Database:
     PATH = os.path.realpath(os.path.join(os.getcwd(), './data/server.db'))
-    CONN = sqlite3.connect(PATH)
+    CONN = sqlite3.connect(PATH, check_same_thread=False)
     CUR = CONN.cursor()
 
     def saveMessage(message: str, userID: int, timestamp: float, channelID: int) -> None:
@@ -123,8 +123,7 @@ class Database:
         return None
     
 
-
-    def onServerClose():
+    def onServerClose() -> None:
         '''on server close, commit all changes made during runtime and close the Database'''
         
         Database.CONN.commit()

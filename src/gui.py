@@ -1,4 +1,3 @@
-import socket
 import tkinter as tk
 import tkinter.messagebox as tkmb
 import client
@@ -43,7 +42,7 @@ class MainGUI(tk.Toplevel):
         F2 = tk.Frame(self)
 
         # create button to delete chat and open a new chat
-        tk.Button(F2, text="Delete Chat", fg="red", command=lambda: self._removeChat(LB), font=("Courier New", "12")).grid(row=0, pady=10)
+        tk.Button(F2, text="Delete Chat", fg="red", command=lambda: self._removeChat(LB, self._usernamesDict), font=("Courier New", "12")).grid(row=0, pady=10)
         tk.Button(F2, text="New Chat", fg= "blue", command=self._openChat, font=("Courier New", "12")).grid(row=1, pady=10)
         # grid frame
         F2.grid(row=2, column=1, padx=20)
@@ -58,7 +57,7 @@ class MainGUI(tk.Toplevel):
 
 
 
-    def _openChat(self, event, LB: tk.Listbox, D: dict[str:int]) -> None:
+    def _openChat(self, event, LB: tk.Listbox, D: dict[str,int]) -> None:
         '''opens a new chatGUI when user clicks on a LB item'''
 
         # get the username the user selected
@@ -124,9 +123,28 @@ class MainGUI(tk.Toplevel):
 
 
 
-    def _createChat(self) -> None:
+    def _createChat(self, LB: tk.Listbox) -> None:
         '''creates a new chat channel with another user'''
-        pass
+
+        def enter(event):
+            username = entryText.get()
+            userID = self._client.receiveUserID(username)
+            if userID != None:
+                self._client.addConversation(username)
+                LB.insert(tk.END, username)
+                createWin.destroy()
+            else:
+                tkmb.showerror("Error", "Invalid username, please double check and try again")
+
+        createWin = tk.Toplevel(self)
+        createWin.title("Open New Conversation")
+        entryText = tk.StringVar()
+
+        tk.Label(createWin, text="Type in a valid username", font=("Courier New", 10)).grid(padx=10, pady=10, columnspan=2)
+        tk.Label(createWin, text="Username:").grid(row=1, column=0, padx=10, pady=10)
+        usernameEntry = tk.Entry(createWin, textvariable=entryText)
+        usernameEntry.bind("<Return>", enter)
+        usernameEntry.grid(row=1, column=1, padx=10)
 
 
 

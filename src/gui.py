@@ -43,8 +43,8 @@ class MainGUI(tk.Toplevel):
         F2 = tk.Frame(self)
 
         # create button to delete chat and open a new chat
-        tk.Button(F2, text="Delete Chat", fg="red", command=self._openChat, font=("Courier New", "12")).grid(row=0, pady=10)
-        tk.Button(F2, text="New Chat", fg= "blue", command=self._removeChat, font=("Courier New", "12")).grid(row=1, pady=10)
+        tk.Button(F2, text="Delete Chat", fg="red", command=lambda: self._removeChat(LB), font=("Courier New", "12")).grid(row=0, pady=10)
+        tk.Button(F2, text="New Chat", fg= "blue", command=self._openChat, font=("Courier New", "12")).grid(row=1, pady=10)
         # grid frame
         F2.grid(row=2, column=1, padx=20)
 
@@ -60,21 +60,50 @@ class MainGUI(tk.Toplevel):
 
     def _openChat(self, event, LB: tk.Listbox, D: dict[str:int]) -> None:
         '''opens a new chatGUI when user clicks on a LB item'''
-        user2 = LB.get(LB.curselection())
-        user2ID = D[user2]
+
+        # get the username the user selected
+        user2: str = LB.get(LB.curselection())
+        # clear user selection
+        LB.selection_clear(0, tk.END)
+        # get the corresponding userID
+        user2ID: int = D[user2]
+        # get the channelID between user and user2
+        channelID: int = self._client.receiveChannelID(user2ID)
+        # open chat box
+        chatGUI(self, channelID)
         
 
 
-
-    def _removeChat(self) -> None:
+    def _removeChat(self, LB: tk.Listbox) -> None:
         '''removes a conversation'''
+
+        # create window for removing conversation
+        removeWin = tk.Toplevel(self)
+        convoList = LB.get(0, tk.END)
+        removeWin.title("Remove Chat")
+
+        # create label to tell user what to do
+        tk.Label(removeWin, text="Select Conversation(s) to Remove", font=("Courier New", "13", "bold")).grid(row=0, column=0, padx=10, pady=10)
+        
+        # create frame to grid listbox and scrollbar
+        F = tk.Frame(removeWin, pady=10)
+        F.grid(sticky="ns")
+
+        # create listbox and scrollbar
+        S = tk.Scrollbar(F)
+        LB = tk.Listbox(F, height=10, width=20, yscrollcommand=S.set)
+        LB.insert(tk.END, *convoList)
+        LB.configure(font=("Courier New", "15"))
+        LB.grid(row=0, column=0)
+        S.grid(row=0, column=1, sticky='ns')
+        S.config(command=LB.yview)
         pass
 
 
 
     def _createChat(self) -> None:
-            '''creates a new chat channel with another user'''
-            pass
+        '''creates a new chat channel with another user'''
+        pass
 
 
 
@@ -138,9 +167,8 @@ class loginGUI(tk.Tk):
 
     def checkCredential(self) -> None:
         self._client = client.Client()
-        self._client.login(self._usernameVar.get(), self._passwordVar.get())
+        self._userID = self._client.login(self._usernameVar.get(), self._passwordVar.get())
 
-        self._userID = self._client.getUserID()
         if self._userID == None:
             tkmb.showerror("Error", "Login failed. Please check your username and password and try again")
         else:
@@ -154,19 +182,5 @@ class loginGUI(tk.Tk):
             self.quit()
 
 
-
-    def getUserID(self) -> int:
-        return self._userID
-
-
-
-    def getClient(self) -> socket.socket:
-        return self._client
-    
-    
-    
-    def getUsername(self) -> str:
-        return self._usernameVar.get()
-    
 
 loginGUI().mainloop()

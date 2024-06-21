@@ -33,6 +33,9 @@ class Client:
         response: dict = self.sendAction(communication.LOGIN, username, password)
         id: int = response['data']
         
+        if id:
+          self._userID = id
+            
         return id
     
     def openConversation(self, channelID: int) -> list[tuple]:

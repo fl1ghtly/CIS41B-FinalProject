@@ -84,6 +84,10 @@ class Server:
     def sendChannelID(self, user1ID: int, user2ID: int) -> int:
         '''Returns the channelID that matches with user1ID and user2ID'''
         return Database.getChannelID(user1ID, user2ID)
+    
+    def sendUserID(self, username: str) -> int:
+        '''Returns the corresponding userID given the username'''
+        return Database.getUserID(username)
 
     def serveClient(self, connection: socket.socket) -> None:
         '''Handle a client's requests'''
@@ -99,7 +103,8 @@ class Server:
             communication.SENT_MESSAGE: self.handleReceiveMessage,
             communication.REQUEST_MESSAGE_UPDATE: self.sendNewMessages,
             communication.REQUEST_PROFILE_UPDATE: self.sendProfiles,
-            communication.REQUEST_USERNAMES: self.sendUsernames}
+            communication.REQUEST_USERNAMES: self.sendUsernames,
+            communication.REQUEST_USERID: self.sendUserID}
         
         while True:
             # NOTE all responses sent to and from the server will be dictionaries

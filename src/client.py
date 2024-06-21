@@ -86,6 +86,11 @@ class Client:
         response: dict = self.sendAction(communication.REQUEST_CHANNELID, self._userID, user2ID)
         return response['data']
     
+    def receiveUserID(self, username: str) -> int:
+        '''Receives the corresponding userID given the username'''
+        response: dict = self.sendAction(communication.REQUEST_USERID, username)
+        return response['data']
+    
     def getUserID(self) -> int | None:
         return self._userID
 

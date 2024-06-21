@@ -68,7 +68,7 @@ class Database:
         # 1 = True, 0 = False
 
         # get the entire row where channelID and userID matches
-        row = Database.CUR.execute('''SELECT * FROM ChannelDB WHERE channel_id = ? AND (user1_id = ? OR user2_id = ?)''', (channelID, userID, userID)).fetchone()
+        row = Database.CUR.execute('''SELECT * FROM ChannelDB WHERE channel_id = ?''', (channelID,)).fetchone()
         if row[1] == userID: # if user1_id matches userID...
             if visibliity == True:
                 Database.CUR.execute('''UPDATE ChannelDB SET user1_display = 1 WHERE channel_id = ?''', (channelID,))
@@ -80,6 +80,11 @@ class Database:
             else:
                 Database.CUR.execute('''UPDATE ChannelDB SET user2_display = 0 WHERE channel_id = ?''', (channelID,))
 
+        # if both users have their visibility of the channel as false, call deleteConversation()
+        visibility = Database.CUR.execute('''SELECT user1_display, user2_display FROM ChannelDB WHERE channel_id = ?''', (channelID,)).fetchone()
+        if visibility[0] == 0 and visibility[1] == 0:
+            Database.deleteConversation(channelID)
+
         Database.CONN.commit()
 
 
@@ -90,7 +95,6 @@ class Database:
 
         Database.CUR.execute('''DELETE FROM MessageDB WHERE channel_id = ?''', (channelID,))
         Database.CUR.execute('''DELETE FROM ChannelDB WHERE channel_id = ?''', (channelID,))
-        Database.CONN.commit()
 
 
 

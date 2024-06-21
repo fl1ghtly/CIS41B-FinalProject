@@ -73,8 +73,8 @@ class Client:
         response: dict = self.sendAction(communication.REQUEST_PROFILE_UPDATE)
         return response['data']
     
-    def receiveUsernames(self) -> list[str]:
-        '''Receives a list of all the username the user has conversed with'''
+    def receiveUsernames(self) -> dict[str:int]:
+        '''Receives a list of all the username and user ids the user has conversed with'''
         response: dict = self.sendAction(communication.REQUEST_USERNAMES, self._userID)
         return response['data']
     

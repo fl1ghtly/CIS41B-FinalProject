@@ -65,8 +65,8 @@ class Server:
 
         Database.addConversation(user1ID, user2ID)
 
-    def sendUsernames(self, userID: int) -> list[str]:
-        '''Returns the list of usernames the given userID has conversed with'''
+    def sendUsernames(self, userID: int) -> dict[str:int]:
+        '''Returns the list of usernames and user ids the given userID has conversed with'''
         return Database.getUsernames(userID)
 
     def serveClient(self, connection: socket.socket) -> None:

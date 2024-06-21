@@ -27,6 +27,11 @@ class Server:
 
         return server
         
+    def endServer(self) -> None:
+        '''Closes the server and saves any changes made to the database'''
+        Database.onServerClose()
+        self._serverSocket.close()
+        
     def sendNewMessages(self, lastPollTime: float) -> list[tuple]:
         '''Return all messages since a given time'''
         return Database.getMessages(lastPollTime)
@@ -105,4 +110,7 @@ class Server:
             communication.sendResponse(connection, actionID, returnValue)
             
 if __name__ == '__main__':
-    server = Server()
+    try:
+        server = Server()
+    finally:
+        server.endServer()

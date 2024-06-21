@@ -3,7 +3,7 @@ import time
 
 
 class Database:
-    CONN = sqlite3.connect('server.db')
+    CONN = sqlite3.connect('C:/Users/tonyb/OneDrive/Documents/school/homework/advanced python/CIS41B-FinalProject/data/server.db')
     CUR = CONN.cursor()
 
     def saveMessage(message: str, userID: int, timestamp: float, channelID: int) -> None:
@@ -143,7 +143,7 @@ class Database:
     
 
 
-    def getUsernames(userID: int) -> list[str]:
+    def getUsernames(userID: int) -> dict[str:int]:
         '''get the usernames of everyone who has conversed with the given userID'''
 
         # fetch all the user1_id and user2_ids tuples that match with userID
@@ -152,15 +152,15 @@ class Database:
         # this means the ids we get are the ids that the given userID has conversed with
         ids = [id for idTuple in userIDs for id in idTuple if id != userID]
         # get the usernames of all the ids
-        usernames = [Database.CUR.execute('''SELECT username FROM UserDB WHERE user_id = ?''', (id,)).fetchone()[0] for id in ids]
+        usernames = [Database.CUR.execute('''SELECT username, user_id FROM UserDB WHERE user_id = ?''', (id,)).fetchone() for id in ids]
         # return the list of usernames
-        return usernames
+        return dict(zip(usernames, ids))
 
 
 
 
 if __name__ == '__main__':
-    conn = sqlite3.connect('server.db')
+    conn = sqlite3.connect("C:/Users/tonyb/OneDrive/Documents/school/homework/advanced python/CIS41B-FinalProject/data/server.db")
     cur = conn.cursor()
     cur.execute("DROP TABLE IF EXISTS MessageDB")
     cur.execute('''CREATE TABLE MessageDB

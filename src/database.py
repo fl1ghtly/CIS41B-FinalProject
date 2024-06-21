@@ -12,6 +12,7 @@ class Database:
 
         Database.CUR.execute('''INSERT INTO MessageDB (channel_id, user_id, timestamp, message) VALUES (?, ?, ?, ?)''', 
                              (channelID, userID, timestamp, message))
+        Database.CONN.commit()
 
     
 
@@ -37,6 +38,7 @@ class Database:
         # called by server.py - updateProfile
 
         Database.CUR.execute('''UPDATE UserDB SET username = ? WHERE user_id = ?''', (name, userID))
+        Database.CONN.commit()
 
 
 
@@ -55,6 +57,7 @@ class Database:
 
         Database.CUR.execute('''INSERT INTO ChannelDB (user1_id, user2_id, user1_display, user2_display) VALUES (?, ?, ?, ?)''',
                              (user1, user2, 1, 1))
+        Database.CONN.commit()
 
 
 
@@ -77,6 +80,8 @@ class Database:
             else:
                 Database.CUR.execute('''UPDATE ChannelDB SET user2_display = 0 WHERE channel_id = ?''', (channelID,))
 
+        Database.CONN.commit()
+
 
 
     def deleteConversation(channelID: int) -> None:
@@ -85,6 +90,7 @@ class Database:
 
         Database.CUR.execute('''DELETE FROM MessageDB WHERE channel_id = ?''', (channelID,))
         Database.CUR.execute('''DELETE FROM ChannelDB WHERE channel_id = ?''', (channelID,))
+        Database.CONN.commit()
 
 
 
@@ -97,6 +103,7 @@ class Database:
         check = Database.CUR.execute('''SELECT * FROM UserDB WHERE username = ?''', (username,)).fetchone()
         if check == None: # if nothing was fetched, put the username and password into the database
             Database.CUR.execute('''INSERT INTO UserDB (username, last_login, password) VALUES (?, ?, ?)''', (username, 0, password))
+            Database.CONN.commit()
             return True
         else: # if something was fetched, someone already chose that username, fail the operation
             return False
@@ -124,9 +131,8 @@ class Database:
     
 
     def onServerClose() -> None:
-        '''on server close, commit all changes made during runtime and close the Database'''
+        '''on server close, close the Database'''
         
-        Database.CONN.commit()
         Database.CONN.close()
         
 

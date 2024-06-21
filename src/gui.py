@@ -127,23 +127,33 @@ class MainGUI(tk.Toplevel):
     def _createChat(self, LB: tk.Listbox) -> None:
         '''creates a new chat channel with another user'''
 
+        # define enter function for when user clicks enter key
         def enter(event):
+            # get the username
             username = entryText.get()
+            # clear the entry widget
             usernameEntry.delete(0, tk.END)
+            # get the userID that corresponds with the user given username
             userID = self._client.receiveUserID(username)
-            if userID != None:
+            if userID != None: # if the username exists...
+                # create a new conversation
                 self._client.addConversation(username)
+                # insert the nickname into the LB
                 LB.insert(tk.END, username)
+                # destroy createWin
                 createWin.destroy()
-            else:
+            else: # if the username does not exist...
                 tkmb.showerror("Error", "Invalid username, please double check and try again")
                 createWin.focus_set()
 
+        # create a window for changing nickname
         createWin = tk.Toplevel(self)
         createWin.title("Open New Conversation")
         createWin.focus_set()
+
         entryText = tk.StringVar()
 
+        # populate createWin
         tk.Label(createWin, text="Type in a valid username", font=("Courier New", 10)).grid(padx=10, pady=10, columnspan=2)
         tk.Label(createWin, text="Username:").grid(row=1, column=0, padx=10, pady=10)
         usernameEntry = tk.Entry(createWin, textvariable=entryText)
@@ -159,6 +169,8 @@ class MainGUI(tk.Toplevel):
         def enter(event):
             # get the nickname
             nickname = entryText.get()
+            # clear the entry widget
+            nicknameEntry.delete(0, tk.END)
             if nickname not in nickList: # if the nickname isn't a duplicate...
                 # update user's nickname in database
                 self._client.updateProfile(nickname)

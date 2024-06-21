@@ -27,8 +27,8 @@ class MainGUI(tk.Toplevel):
         S.grid(row=0, column=1, sticky='ns')
 
         # create listbox to display past conversations
-        D = self._client.receiveUsernames()
-        usernames = D.values()
+        self._usernamesDict: dict[str,int] = self._client.receiveUsernames()
+        usernames = self._usernamesDict.keys()
         LB = tk.Listbox(F1, height=10, width=20, yscrollcommand=S.set)
         LB.insert(tk.END, *usernames)
         LB.configure(font=("Courier New", "15"))
@@ -69,13 +69,34 @@ class MainGUI(tk.Toplevel):
         user2ID: int = D[user2]
         # get the channelID between user and user2
         channelID: int = self._client.receiveChannelID(user2ID)
-        # open chat box
+        # open chatGUI
         chatGUI(self, channelID)
         
 
 
     def _removeChat(self, LB: tk.Listbox) -> None:
         '''removes a conversation'''
+
+        # define remove function for use when user submits their list of conversations they want to remove
+        def remove():
+            # get the list of indices the user selected
+            selected: list[int] = removeLB.curselection()
+            if len(selected) > 0: # if the list is not empty
+                # get the list of corresponding usernames
+                selectedChats: list[str] = [removeLB.get(index) for index in selected]
+                # get the list of corresponding userIDs while also popping them out from self._usernamesDict
+                removedChatIDs = [self._usernamesDict.pop(chat) for chat in selectedChats]
+                # get the list of corresponding channelIDs
+                removedChatChannels = [self._client.receiveChannelID(id) for id in removedChatIDs]
+                # for every channelID...
+                for channelID in removedChatChannels:
+                    # remove it from the database
+                    self._client.removeConversation(channelID)
+
+                LB.delete(0, tk.END)
+                LB.insert(tk.END, *self._usernamesDict)
+
+                removeWin.destroy()
 
         # create window for removing conversation
         removeWin = tk.Toplevel(self)
@@ -91,13 +112,15 @@ class MainGUI(tk.Toplevel):
 
         # create listbox and scrollbar
         S = tk.Scrollbar(F)
-        LB = tk.Listbox(F, height=10, width=20, yscrollcommand=S.set)
-        LB.insert(tk.END, *convoList)
-        LB.configure(font=("Courier New", "15"))
-        LB.grid(row=0, column=0)
+        removeLB = tk.Listbox(F, height=10, width=20, yscrollcommand=S.set, selectmode="multiple")
+        removeLB.insert(tk.END, *convoList)
+        removeLB.configure(font=("Courier New", "15"))
+        removeLB.grid(row=0, column=0)
         S.grid(row=0, column=1, sticky='ns')
         S.config(command=LB.yview)
-        pass
+
+        # create a button to sumbit user choices
+        tk.Button(removeWin, text="Submit", font=("Courier New", "13"), command=remove).grid(padx=10, pady=10)
 
 
 

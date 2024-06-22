@@ -151,14 +151,19 @@ class MainGUI(tk.Toplevel):
         createWin.title("Open New Conversation")
         createWin.focus_set()
 
+        # create StringVar for entry widget
         entryText = tk.StringVar()
 
+        # create frame to grid label and entry widget
+        F = tk.Frame(createWin)
+        F.grid(row=1, pady=10)
+
         # populate createWin
-        tk.Label(createWin, text="Type in a valid username", font=("Courier New", 10)).grid(padx=10, pady=10, columnspan=2)
-        tk.Label(createWin, text="Username:").grid(row=1, column=0, padx=10, pady=10)
-        usernameEntry = tk.Entry(createWin, textvariable=entryText)
+        tk.Label(createWin, text="Type in a valid username", font=("Courier New", 10)).grid(row=0, padx=10, pady=10)
+        tk.Label(F, text="Username:").grid(row=0, column=0, padx=3)
+        usernameEntry = tk.Entry(F, textvariable=entryText)
         usernameEntry.bind("<Return>", enter)
-        usernameEntry.grid(row=1, column=1, padx=10)
+        usernameEntry.grid(row=0, column=1)
 
 
 
@@ -195,12 +200,16 @@ class MainGUI(tk.Toplevel):
         nickList: list[str] = [user[1] for user in users]
         entryText = tk.StringVar()
 
+        # create frame to grid label and entry widget
+        F = tk.Frame(nickWin)
+        F.grid(row=1, padx=10, pady=10)
+
         # populate nickWin
-        tk.Label(nickWin, text="Type in a new username", font=("Courier New", 10)).grid(padx=10, pady=10, columnspan=2)
-        tk.Label(nickWin, text="New Nickname:").grid(row=1, column=0, padx=10, pady=10)
+        tk.Label(nickWin, text="Type in a new username", font=("Courier New", 10)).grid(row=0, padx=10, pady=10)
+        tk.Label(F, text="New Nickname:").grid(row=1, column=0)
         nicknameEntry = tk.Entry(nickWin, textvariable=entryText)
         nicknameEntry.bind("<Return>", enter)
-        nicknameEntry.grid(row=1, column=1, padx=10)
+        nicknameEntry.grid(row=1, column=1)
 
 
 

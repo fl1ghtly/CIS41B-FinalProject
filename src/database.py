@@ -171,6 +171,16 @@ class Database:
         '''get the channelID that matches with user1ID and user2ID'''
 
         return Database.CUR.execute('''SELECT channel_id FROM ChannelDB WHERE user1_id = ? AND user2_id = ?''', (user1ID, user2ID)).fetchone()[0]
+    
+    def setLastLogin(userID:int, lastLogin: float) -> None:
+        '''set the last login time of a user'''
+
+        Database.CUR.execute('''UPDATE UserDB SET last_login = ? WHERE user_id = ?''', (lastLogin, userID))
+
+    def getLastLogin(userID: int) -> float:
+        '''get teh last login time of a user'''
+
+        return Database.CUR.execute('''SELECT last_login FROM UserDB WHERE user_id = ?''', (userID)).fetchone[0]
 
 
 
@@ -189,7 +199,7 @@ if __name__ == '__main__':
     cur.execute('''CREATE TABLE UserDB
                     (user_id INTEGER NOT NULL PRIMARY KEY,
                     username TEXT,
-                    last_login INTEGER,
+                    last_login REAL,
                     password TEXT)''')
     
     cur.execute("DROP TABLE IF EXISTS ChannelDB")

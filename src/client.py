@@ -93,6 +93,11 @@ class Client:
     
     def getUserID(self) -> int | None:
         return self._userID
+    
+    def getLastLogin(self, userID: int) -> float:
+        '''Receives the last login time of given userID'''
+        response: dict = self.sendAction(communication.REQUEST_LAST_LOGIN, userID)
+        return response['data']
 
 if __name__ == '__main__':
     client = Client()

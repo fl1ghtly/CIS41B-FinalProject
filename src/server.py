@@ -90,6 +90,10 @@ class Server:
         '''Returns the corresponding userID given the username'''
         return Database.getUserID(username)
     
+    def sendLastLogin(self, userID: int) -> float:
+        '''Returns the last login time of given userID'''
+        return Database.getLastLogin(userID)
+    
     def handleClientDisconnect(self, connection: socket.socket) -> None:
         try:
             userID = self._clients[connection]

@@ -15,6 +15,7 @@ REQUEST_MESSAGE_UPDATE = 7
 REQUEST_PROFILE_UPDATE = 8
 REQUEST_USERNAMES = 9
 REQUEST_CHANNELID = 10
+REQUEST_USERID = 11
 
 def getResponse(connection: socket.socket) -> dict | None:
     '''Gets data from a socket'''

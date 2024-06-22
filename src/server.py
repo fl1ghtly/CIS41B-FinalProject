@@ -68,7 +68,7 @@ class Server:
         '''Create a new account. Returns whether account creation is successful'''
         return Database.registerUser(username, password)
     
-    def handleOpenConversation(self, channelID: int) -> list[tuple]:
+    def handleOpenConversation(self, channelID: int) -> list[tuple[str, float]]:
         '''Return all messages in a channel'''
         return Database.getChannelMessages(channelID)
 
@@ -85,6 +85,10 @@ class Server:
     def sendChannelID(self, user1ID: int, user2ID: int) -> int:
         '''Returns the channelID that matches with user1ID and user2ID'''
         return Database.getChannelID(user1ID, user2ID)
+    
+    def sendUserID(self, username: str) -> int | None:
+        '''Returns the corresponding userID given the username'''
+        return Database.getUserID(username)
     
     def handleClientDisconnect(self, connection: socket.socket) -> None:
         try:
@@ -109,7 +113,8 @@ class Server:
             communication.SENT_MESSAGE: self.handleReceiveMessage,
             communication.REQUEST_MESSAGE_UPDATE: self.sendNewMessages,
             communication.REQUEST_PROFILE_UPDATE: self.sendProfiles,
-            communication.REQUEST_USERNAMES: self.sendUsernames}
+            communication.REQUEST_USERNAMES: self.sendUsernames,
+            communication.REQUEST_USERID: self.sendUserID}
         
         while True:
             # NOTE all responses sent to and from the server will be dictionaries

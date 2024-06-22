@@ -12,14 +12,15 @@ class Database:
 
         Database.CUR.execute('''INSERT INTO MessageDB (channel_id, user_id, timestamp, message) VALUES (?, ?, ?, ?)''', 
                              (channelID, userID, timestamp, message))
+        Database.CONN.commit()
 
     
 
-    def getChannelMessages(channelID: int) -> list[tuple]:
+    def getChannelMessages(channelID: int) -> list[tuple[str, float]]:
         '''gets message from MessageDB based on channel id and return it to server.py'''
-        # called by server.py - sendMessage
+        # called by server.py - handleOpenConversation
 
-        Database.CUR.execute('''SELECT MessageDB.message WHERE channel_id = ? LIMIT 200''', (channelID,))
+        Database.CUR.execute('''SELECT message, timestamp, FROM Message.DB WHERE channel_id = ? LIMIT 200''', (channelID,))
         return Database.CUR.fetchall()
         
         
@@ -37,6 +38,7 @@ class Database:
         # called by server.py - updateProfile
 
         Database.CUR.execute('''UPDATE UserDB SET username = ? WHERE user_id = ?''', (name, userID))
+        Database.CONN.commit()
 
 
 
@@ -55,6 +57,7 @@ class Database:
 
         Database.CUR.execute('''INSERT INTO ChannelDB (user1_id, user2_id, user1_display, user2_display) VALUES (?, ?, ?, ?)''',
                              (user1, user2, 1, 1))
+        Database.CONN.commit()
 
 
 
@@ -65,7 +68,7 @@ class Database:
         # 1 = True, 0 = False
 
         # get the entire row where channelID and userID matches
-        row = Database.CUR.execute('''SELECT * FROM ChannelDB WHERE channel_id = ? AND (user1_id = ? OR user2_id = ?)''', (channelID, userID, userID)).fetchone()
+        row = Database.CUR.execute('''SELECT * FROM ChannelDB WHERE channel_id = ?''', (channelID,)).fetchone()
         if row[1] == userID: # if user1_id matches userID...
             if visibliity == True:
                 Database.CUR.execute('''UPDATE ChannelDB SET user1_display = 1 WHERE channel_id = ?''', (channelID,))
@@ -76,6 +79,13 @@ class Database:
                 Database.CUR.execute('''UPDATE ChannelDB SET user2_display = 1 WHERE channel_id = ?''', (channelID,))
             else:
                 Database.CUR.execute('''UPDATE ChannelDB SET user2_display = 0 WHERE channel_id = ?''', (channelID,))
+
+        # if both users have their visibility of the channel as false, call deleteConversation()
+        visibility = Database.CUR.execute('''SELECT user1_display, user2_display FROM ChannelDB WHERE channel_id = ?''', (channelID,)).fetchone()
+        if visibility[0] == 0 and visibility[1] == 0:
+            Database.deleteConversation(channelID)
+
+        Database.CONN.commit()
 
 
 
@@ -97,13 +107,14 @@ class Database:
         check = Database.CUR.execute('''SELECT * FROM UserDB WHERE username = ?''', (username,)).fetchone()
         if check == None: # if nothing was fetched, put the username and password into the database
             Database.CUR.execute('''INSERT INTO UserDB (username, last_login, password) VALUES (?, ?, ?)''', (username, 0, password))
+            Database.CONN.commit()
             return True
         else: # if something was fetched, someone already chose that username, fail the operation
             return False
     
 
 
-    def getUserID(username: str) -> int:
+    def getUserID(username: str) -> int | None:
         userID = Database.CUR.execute('''SELECT user_id FROM UserDB WHERE username = ?''', (username,)).fetchone()
         return userID[0]
 
@@ -123,9 +134,8 @@ class Database:
     
 
     def onServerClose() -> None:
-        '''on server close, commit all changes made during runtime and close the Database'''
+        '''on server close, close the Database'''
         
-        Database.CONN.commit()
         Database.CONN.close()
         
 
@@ -160,6 +170,16 @@ class Database:
         '''get the channelID that matches with user1ID and user2ID'''
 
         return Database.CUR.execute('''SELECT channel_id FROM ChannelDB WHERE user1_id = ? AND user2_id = ?''', (user1ID, user2ID)).fetchone()[0]
+    
+    def setLastLogin(userID:int, lastLogin: float) -> None:
+        '''set the last login time of a user'''
+
+        Database.CUR.execute('''UPDATE UserDB SET last_login = ? WHERE user_id = ?''', (lastLogin, userID))
+
+    def getLastLogin(userID: int) -> float:
+        '''get teh last login time of a user'''
+
+        return Database.CUR.execute('''SELECT last_login FROM UserDB WHERE user_id = ?''', (userID)).fetchone[0]
 
 
 
@@ -178,7 +198,7 @@ if __name__ == '__main__':
     cur.execute('''CREATE TABLE UserDB
                     (user_id INTEGER NOT NULL PRIMARY KEY,
                     username TEXT,
-                    last_login INTEGER,
+                    last_login REAL,
                     password TEXT)''')
     
     cur.execute("DROP TABLE IF EXISTS ChannelDB")

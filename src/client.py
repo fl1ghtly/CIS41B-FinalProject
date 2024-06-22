@@ -38,7 +38,7 @@ class Client:
             
         return id
     
-    def openConversation(self, channelID: int) -> list[tuple]:
+    def openConversation(self, channelID: int) -> list[tuple[str, float]]:
         '''Requests server for a channel's messages'''
         response: dict = self.sendAction(communication.OPEN_PAST_CONVERSATION, channelID)
         return response['data']
@@ -84,6 +84,11 @@ class Client:
     def receiveChannelID(self, user2ID: int) -> int:
         '''Receives a channelID that matches with self._userID and user2ID'''
         response: dict = self.sendAction(communication.REQUEST_CHANNELID, self._userID, user2ID)
+        return response['data']
+    
+    def receiveUserID(self, username: str) -> int | None:
+        '''Receives the corresponding userID given the username'''
+        response: dict = self.sendAction(communication.REQUEST_USERID, username)
         return response['data']
     
     def getUserID(self) -> int | None:

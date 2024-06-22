@@ -38,7 +38,7 @@ class Client:
             
         return id
     
-    def openConversation(self, channelID: int) -> list[tuple[str, float]]:
+    def openConversation(self, channelID: int) -> list[tuple[int, str, float]]:
         '''Requests server for a channel's messages'''
         response: dict = self.sendAction(communication.OPEN_PAST_CONVERSATION, channelID)
         return response['data']

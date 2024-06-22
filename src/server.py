@@ -2,6 +2,7 @@ import socket
 import threading
 from database import Database
 import communication
+import time
 
 HOST = 'localhost'
 PORT = 5553
@@ -10,7 +11,7 @@ class Server:
     def __init__(self) -> None:
         self._serverSocket = self._startServer()
         self._lock = threading.Lock()
-        self._clients: dict[int, socket.socket] = {}
+        self._clients: dict[socket.socket, int] = {}
         self._threads: list[threading.Thread] = []
         
         while True:
@@ -84,6 +85,15 @@ class Server:
     def sendChannelID(self, user1ID: int, user2ID: int) -> int:
         '''Returns the channelID that matches with user1ID and user2ID'''
         return Database.getChannelID(user1ID, user2ID)
+    
+    def handleClientDisconnect(self, connection: socket.socket) -> None:
+        try:
+            userID = self._clients[connection]
+        except KeyError:
+            
+            return
+        print(f'Client #{userID} has disconnected')
+        # TODO call the database function to set the time
 
     def serveClient(self, connection: socket.socket) -> None:
         '''Handle a client's requests'''
@@ -106,7 +116,7 @@ class Server:
             response = communication.getResponse(connection)
 
             if not response:
-                print('Client has disconnected')
+                self.handleClientDisconnect(connection)
                 break
             
             actionID: int = response['actionID']
@@ -117,7 +127,7 @@ class Server:
             
             if actionID == communication.LOGIN:
                 with self._lock:
-                    self._clients[returnValue] = connection
+                    self._clients[connection] = returnValue
                  
             communication.sendResponse(connection, actionID, returnValue)
             

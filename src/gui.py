@@ -206,7 +206,47 @@ class MainGUI(tk.Toplevel):
 
     def _createUser(self) -> None:
         '''creates a new user in the system'''
-        pass
+
+        def submit():
+            username = usernameText.get()
+            password = passwordText.get()
+            usernameEntry.delete(0, tk.END)
+            passwordEntry.delete(0, tk.END)
+            if username not in nickList:
+                self._client.register(username, password)
+                tkmb.showinfo("Successful", "The new user was successfully created")
+                newUserWin.destroy()
+            else:
+                tkmb.showerror("Error", "Duplicate username, please choose another username")
+                newUserWin.focus_set()
+            
+
+        # create a window for creating a new user
+        newUserWin = tk.Toplevel(self)
+        newUserWin.title("Register New User")
+        newUserWin.focus_set()
+        # create a frame to grid labels and entry widgets
+        F = tk.Frame(newUserWin)
+        F.grid(row=1, padx=10)
+
+        # get the list of tuples of all userIDs and usernames
+        users = self._client.receiveProfileUpdates()
+        # get all the usernames
+        nickList: list[str] = [user[1] for user in users]
+        # create StringVars for entry widgets
+        usernameText = tk.StringVar()
+        passwordText = tk.StringVar()
+
+        # populate newUserWin
+        tk.Label(newUserWin, text="Create an account", font=("Courier New", 10)).grid(row=0, pady=10)
+        tk.Label(F, text="Username:").grid(row=0, column=0, pady=3)
+        tk.Label(F, text="Password:").grid(row=1, column=0, pady=3)
+        usernameEntry = tk.Entry(F, textvariable=usernameText)
+        usernameEntry.grid(row=0, column=1)
+        passwordEntry = tk.Entry(F, textvariable=passwordText)
+        passwordEntry.grid(row=1, column=1)
+        tk.Button(newUserWin, text="Submit", command=submit).grid(row=2, pady=10)
+        
 
 
 

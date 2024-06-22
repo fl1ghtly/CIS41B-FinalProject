@@ -116,7 +116,6 @@ class Database:
 
         Database.CUR.execute('''SELECT user_id FROM UserDB WHERE username = ? AND password = ?''', (username, password))
         data = Database.CUR.fetchone()
-        print(data)
         if data:
             return data[0]
         

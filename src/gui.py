@@ -273,6 +273,7 @@ class chatGUI(tk.Toplevel):
         self._user2 = user2
         self._user2ID = user2ID
         self._message = tk.StringVar()
+        self._lastPollTime = time.time()
 
         tk.Label(self, text=self._user2, font=("Helvetica", "20")).grid(padx=20, pady=10, sticky="w")
 
@@ -287,14 +288,11 @@ class chatGUI(tk.Toplevel):
 
         texts = self._client.openConversation(self._channelID)
         self._textBox = st.ScrolledText(self, height=20, width=30)
-        indexCounter = 1.0
         for text in texts:
             if text[0] == self._mainUserID:
-                self._textBox.insert(tk.END, f"You: {text[1]}\n")
+                self._textBox.insert(tk.END, "\n"+"You: "+text[1])
             else:
-                self._textBox.insert(tk.END, f"{self._user2}: {text[1]}\n")
-            indexCounter += 1.0
-        self._textBox.delete(indexCounter)
+                self._textBox.insert(tk.END, "\n"+self._user2+": "+text[1])
         self._textBox.config(state='disabled')
         self._textBox.grid(padx=10, pady=10)
         self._textBox.yview_moveto(1)
@@ -320,7 +318,18 @@ class chatGUI(tk.Toplevel):
 
 
     def receiveMessage(self) -> None:
-        pass
+        messages: list[tuple[int, str]] = self._client.receiveMessages(self._channelID, self._lastPollTime)
+        self._textBox.config(state="normal")
+        for message in messages:
+            if message[0] == self._mainUserID:
+                self._textBox.insert(tk.END, "\n"+"You: "+message[1])
+            else:
+                self._textBox.insert(tk.END, "\n"+self._user2+": "+message[1])
+        self._textBox.config(state="disabled")
+
+        self._lastPollTime = time.time()
+
+        self.after(chatGUI.DELAY_TIME, self.receiveMessage)
 
 
 

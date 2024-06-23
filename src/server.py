@@ -9,43 +9,58 @@ PORT = 5553
 
 class Server:
     def __init__(self) -> None:
-        self._serverSocket = self._startServer()
+        self._serverSocket: socket.socket = None
         self._lock = threading.Lock()
         self._clients: dict[socket.socket, int] = {}
         self._threads: list[threading.Thread] = []
         self._running = threading.Event()
         self._running.set()
 
+    def _run(self) -> None:
+        '''Accept and handle new client connections'''
         while True:
             (clientSocket, address) = self._serverSocket.accept()
             print(f'New Connection at address: {address}')
-            thread = threading.Thread(target=self.serveClient, args=(clientSocket, ))
+            thread = threading.Thread(target=self.serveClient, args=(clientSocket,), daemon=True)
             self._threads.append(thread)
             thread.start()
-
-    def _startServer(self) -> socket.socket:
+        
+    def startServer(self) -> None:
         '''Start a server socket and have it listen. Returns the socket'''
-        server = socket.socket()
-        server.bind((HOST, PORT))
+        self._serverSocket = socket.socket()
+        self._serverSocket.bind((HOST, PORT))
         print(f'Server online at hostname: {HOST}, port: {PORT}')
-        server.listen()
+        self._serverSocket.listen()
 
-        return server
-    
+        daemon = threading.Thread(target=self._run, daemon=True)
+        daemon.start()
+        
+        print('Enter q to close the server')
+        while daemon.is_alive():
+            key = input()
+            if key.lower() == 'q':
+                break
+                
     def endServer(self) -> None:
         '''Closes the server and saves any changes made to the database'''
-        # Commit all unsaved changes to the Database
-        with self._lock:
-            Database.onServerClose()
 
         # Stop all client threads
+        '''
         for thread in self._threads:
             self._running.clear()
             thread.join()
+        '''
 
         # Set everyone's last login time 
-        for connection in self._clients.keys():
+        # NOTE Don't use self._clients.key() because it returns 
+        # the view which raises an error when the dictionary 
+        # is modified during handleClientDisconnect
+        for connection in list(self._clients):
             self.handleClientDisconnect(connection)
+
+        # Commit all unsaved changes to the Database
+        with self._lock:
+            Database.onServerClose()
 
         # Close the server
         self._serverSocket.close()
@@ -154,6 +169,7 @@ class Server:
             data: list = response['data']
 
             # Do the action the client requested
+            # Only let one thread read/write to the database at a time
             with self._lock:
                 returnValue = actions[actionID](*data)
             
@@ -166,7 +182,8 @@ class Server:
             communication.sendResponse(connection, actionID, returnValue)
             
 if __name__ == '__main__':
+    server = Server()
     try:
-        server = Server()
+        server.startServer()
     finally:
         server.endServer()

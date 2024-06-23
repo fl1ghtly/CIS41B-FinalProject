@@ -13,8 +13,6 @@ class Server:
         self._lock = threading.Lock()
         self._clients: dict[socket.socket, int] = {}
         self._threads: list[threading.Thread] = []
-        self._running = threading.Event()
-        self._running.set()
 
     def _run(self) -> None:
         '''Accept and handle new client connections'''
@@ -148,7 +146,7 @@ class Server:
             communication.REQUEST_LAST_LOGIN: self.sendLastLogin,
             communication.UPDATE_LAST_LOGIN: self.updateLastLogin}
         
-        while self._running.is_set():
+        while True:
             # NOTE all responses sent to and from the server will be dictionaries
             response = communication.getResponse(connection)
 
@@ -172,7 +170,7 @@ class Server:
                  
             # Return the response to the client
             communication.sendResponse(connection, actionID, returnValue)
-            
+
 if __name__ == '__main__':
     server = Server()
     try:

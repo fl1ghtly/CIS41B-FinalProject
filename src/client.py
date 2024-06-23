@@ -33,7 +33,12 @@ class Client:
     
     def sendAction(self, actionID: int, *args) -> dict | None:
         '''Sends and receives information to the server'''
-        communication.sendResponse(self._server, actionID, *args)
+        success = communication.sendResponse(self._server, actionID, *args)
+
+        if not success:
+            print('Server is offline')
+            return None
+        
         # Will return None when server goes offline or can't reach the server
         response: dict | None = communication.getResponse(self._server)
         return response

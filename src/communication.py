@@ -36,13 +36,17 @@ def getResponse(connection: socket.socket) -> dict | None:
         # Socket disconnected so return None
         return None
 
-def sendResponse(connection: socket.socket, actionID: int = None, *args) -> None:
-    '''Sends a response to a socket'''
-    data = {'actionID': actionID, 'data': [*args]}
-    byte = pickle.dumps(data)
+def sendResponse(connection: socket.socket, actionID: int = None, *args) -> bool:
+    '''Sends a response to a socket. Returns whether data was sent successfully'''
+    try:
+        data = {'actionID': actionID, 'data': [*args]}
+        byte = pickle.dumps(data)
 
-    # Send the message header first
-    header = len(byte).to_bytes(HEADER_SIZE, 'little')
-    connection.sendall(header)
-    # Send the message itself
-    connection.sendall(byte)
+        # Send the message header first
+        header = len(byte).to_bytes(HEADER_SIZE, 'little')
+        connection.sendall(header)
+        # Send the message itself
+        connection.sendall(byte)
+        return True
+    except ConnectionResetError:
+        return False

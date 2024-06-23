@@ -38,6 +38,10 @@ class Server:
         for thread in self._threads:
             thread.join()
 
+        # Set everyone's last login time 
+        for connection in self._clients.keys():
+            self.handleClientDisconnect(connection)
+
         self._serverSocket.close()
         
     def sendNewMessages(self, lastPollTime: float) -> list[tuple]:
@@ -96,13 +100,14 @@ class Server:
     
     def handleClientDisconnect(self, connection: socket.socket) -> None:
         try:
-            userID = self._clients[connection]
+            userID = self._clients.pop(connection)
         except KeyError:
-            
             return
-        print(f'Client #{userID} has disconnected')
-        # TODO call the database function to set the time
 
+        print(f'Client #{userID} has disconnected')
+        Database.setLastLogin(userID, time.time())
+        connection.close()
+        
     def serveClient(self, connection: socket.socket) -> None:
         '''Handle a client's requests'''
         # Client sends a message declaring what action they will take

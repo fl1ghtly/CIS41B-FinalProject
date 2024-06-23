@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import time
 
 class Database:
     PATH = os.path.realpath(os.path.join(os.getcwd(), './data/server.db'))
@@ -20,7 +21,7 @@ class Database:
         '''gets all messages from MessageDB based on channel id and return it to server.py'''
         # called by server.py - handleOpenConversation
 
-        Database.CUR.execute('''SELECT user_id, message, FROM Message.DB WHERE channel_id = ? LIMIT 200''', (channelID,))
+        Database.CUR.execute('''SELECT user_id, message FROM MessageDB WHERE channel_id = ? LIMIT 200''', (channelID,))
         return Database.CUR.fetchall()
         
         
@@ -108,7 +109,7 @@ class Database:
         # fetch one database entry that matches the passed in username
         check = Database.CUR.execute('''SELECT * FROM UserDB WHERE username = ?''', (username,)).fetchone()
         if check == None: # if nothing was fetched, put the username and password into the database
-            Database.CUR.execute('''INSERT INTO UserDB (username, last_login, password) VALUES (?, ?, ?)''', (username, 0, password))
+            Database.CUR.execute('''INSERT INTO UserDB (username, last_login, password) VALUES (?, ?, ?)''', (username, time.time(), password))
             Database.CONN.commit()
             return True
         else: # if something was fetched, someone already chose that username, fail the operation
@@ -171,7 +172,7 @@ class Database:
     def getChannelID(user1ID: int, user2ID: int) -> int:
         '''get the channelID that matches with user1ID and user2ID'''
 
-        return Database.CUR.execute('''SELECT channel_id FROM ChannelDB WHERE user1_id = ? AND user2_id = ?''', (user1ID, user2ID)).fetchone()[0]
+        return Database.CUR.execute('''SELECT channel_id FROM ChannelDB WHERE (user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)''', (user1ID, user2ID, user2ID, user1ID)).fetchone()[0]
     
     def setLastLogin(userID:int, lastLogin: float) -> None:
         '''set the last login time of a user'''
@@ -181,7 +182,7 @@ class Database:
     def getLastLogin(userID: int) -> float:
         '''get teh last login time of a user'''
 
-        return Database.CUR.execute('''SELECT last_login FROM UserDB WHERE user_id = ?''', (userID)).fetchone[0]
+        return Database.CUR.execute('''SELECT last_login FROM UserDB WHERE user_id = ?''', (userID, )).fetchone()[0]
 
 
 

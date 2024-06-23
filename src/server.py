@@ -104,6 +104,10 @@ class Server:
         '''Returns the last login time of given userID'''
         return Database.getLastLogin(userID)
     
+    def updateLastLogin(self, userID: int, lastLogin: float) -> None:
+        '''Updates the last login time of given userID'''
+        return Database.setLastLogin(userID, lastLogin)
+    
     def handleClientDisconnect(self, connection: socket.socket) -> None:
         # Get the user id and remove the element in the dict
         try:
@@ -112,7 +116,7 @@ class Server:
             return
 
         print(f'Client #{userID} has disconnected')
-        Database.setLastLogin(userID, time.time())
+        self.updateLastLogin(userID, time.time())
         
         # Close the client's connection if it wasn't already
         connection.close()
@@ -134,7 +138,8 @@ class Server:
             communication.REQUEST_USERNAMES: self.sendUsernames,
             communication.REQUEST_CHANNELID: self.sendChannelID,
             communication.REQUEST_USERID: self.sendUserID,
-            communication.REQUEST_LAST_LOGIN: self.sendLastLogin}
+            communication.REQUEST_LAST_LOGIN: self.sendLastLogin,
+            communication.UPDATE_LAST_LOGIN: self.updateLastLogin}
         
         while self._running.is_set():
             # NOTE all responses sent to and from the server will be dictionaries

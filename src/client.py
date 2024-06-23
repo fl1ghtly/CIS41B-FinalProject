@@ -48,6 +48,7 @@ class Client:
         
         if id:
           self._userID = id
+          self.sendAction(communication.UPDATE_LAST_LOGIN, self._userID, 0)
             
         return id
     

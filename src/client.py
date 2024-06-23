@@ -28,6 +28,7 @@ class Client:
     
     def disconnect(self) -> None:
         '''Disconnect the client from the server'''
+        self.sendAction(communication.UPDATE_LAST_LOGIN, self._userID, time.time())
         self._server.close()
     
     def sendAction(self, actionID: int, *args) -> dict | None:

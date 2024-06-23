@@ -1,8 +1,8 @@
 import socket
 import threading
+import time
 from database import Database
 import communication
-import time
 
 HOST = 'localhost'
 PORT = 5553
@@ -107,7 +107,7 @@ class Server:
         print(f'Client #{userID} has disconnected')
         Database.setLastLogin(userID, time.time())
         connection.close()
-        
+
     def serveClient(self, connection: socket.socket) -> None:
         '''Handle a client's requests'''
         # Client sends a message declaring what action they will take

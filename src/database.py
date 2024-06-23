@@ -181,6 +181,7 @@ class Database:
         '''set the last login time of a user'''
 
         Database.CUR.execute('''UPDATE UserDB SET last_login = ? WHERE user_id = ?''', (lastLogin, userID))
+        Database.CONN.commit()
 
     def getLastLogin(userID: int) -> float:
         '''get teh last login time of a user'''

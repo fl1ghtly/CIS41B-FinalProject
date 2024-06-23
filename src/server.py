@@ -132,7 +132,9 @@ class Server:
             communication.REQUEST_MESSAGE_UPDATE: self.sendNewMessages,
             communication.REQUEST_PROFILE_UPDATE: self.sendProfiles,
             communication.REQUEST_USERNAMES: self.sendUsernames,
-            communication.REQUEST_USERID: self.sendUserID}
+            communication.REQUEST_CHANNELID: self.sendChannelID,
+            communication.REQUEST_USERID: self.sendUserID,
+            communication.REQUEST_LAST_LOGIN: self.sendLastLogin}
         
         while self._running.is_set():
             # NOTE all responses sent to and from the server will be dictionaries

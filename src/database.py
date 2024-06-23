@@ -16,11 +16,11 @@ class Database:
 
     
 
-    def getChannelMessages(channelID: int) -> list[tuple[int, str, float]]:
+    def getChannelMessages(channelID: int) -> list[tuple[int, str]]:
         '''gets message from MessageDB based on channel id and return it to server.py'''
         # called by server.py - handleOpenConversation
 
-        Database.CUR.execute('''SELECT user_id, message, timestamp, FROM Message.DB WHERE channel_id = ? LIMIT 200''', (channelID,))
+        Database.CUR.execute('''SELECT user_id, message, FROM Message.DB WHERE channel_id = ? LIMIT 200''', (channelID,))
         return Database.CUR.fetchall()
         
         

@@ -21,16 +21,20 @@ UPDATE_LAST_LOGIN = 13
 
 def getResponse(connection: socket.socket) -> dict | None:
     '''Gets data from a socket'''
-    # Get the message size from the header
-    messageSize = int.from_bytes(connection.recv(HEADER_SIZE), 'little')
-    byte = connection.recv(messageSize)
+    try:
+        # Get the message size from the header
+        messageSize = int.from_bytes(connection.recv(HEADER_SIZE), 'little')
+        byte = connection.recv(messageSize)
 
-    # Check if socket disconnected
-    if not byte:
+        # Check if socket disconnected
+        if not byte:
+            return None
+        
+        data: dict = pickle.loads(byte)
+        return data
+    except ConnectionResetError:
+        # Socket disconnected so return None
         return None
-    
-    data: dict = pickle.loads(byte)
-    return data
 
 def sendResponse(connection: socket.socket, actionID: int = None, *args) -> None:
     '''Sends a response to a socket'''

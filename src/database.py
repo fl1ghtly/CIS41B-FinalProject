@@ -184,7 +184,7 @@ class Database:
 
 
 if __name__ == '__main__':
-    conn = sqlite3.connect("C:/Users/tonyb/OneDrive/Documents/school/homework/advanced python/CIS41B-FinalProject/data/server.db")
+    conn = sqlite3.connect(Database.PATH)
     cur = conn.cursor()
     cur.execute("DROP TABLE IF EXISTS MessageDB")
     cur.execute('''CREATE TABLE MessageDB

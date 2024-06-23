@@ -19,6 +19,8 @@ class Client:
         return server
     
     def _returnData(self, response: dict | None) -> list[tuple] | None:
+        '''Return the data list of the response or None if response
+        doesn't exist'''
         if not response:
             return None
         
@@ -31,6 +33,7 @@ class Client:
     def sendAction(self, actionID: int, *args) -> dict | None:
         '''Sends and receives information to the server'''
         communication.sendResponse(self._server, actionID, *args)
+        # Will return None when server goes offline or can't reach the server
         response: dict | None = communication.getResponse(self._server)
         return response
         
@@ -51,7 +54,6 @@ class Client:
     def openConversation(self, channelID: int) -> list[tuple[int, str, float]] | None:
         '''Requests server for a channel's messages'''
         response: dict | None = self.sendAction(communication.OPEN_PAST_CONVERSATION, channelID)
-        
         return self._returnData(response)
     
     def removeConversation(self, channelID: int) -> None:
@@ -84,7 +86,6 @@ class Client:
     def receiveMessages(self, lastPollTime: float) -> list[tuple] | None:
         '''Receive all new messages since a certain time'''
         response: dict | None = self.sendAction(communication.REQUEST_MESSAGE_UPDATE, lastPollTime)
-
         return self._returnData(response)
     
     def receiveProfileUpdates(self) -> list[tuple] | None:

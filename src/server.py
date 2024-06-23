@@ -34,9 +34,11 @@ class Server:
     
     def endServer(self) -> None:
         '''Closes the server and saves any changes made to the database'''
+        # Commit all unsaved changes to the Database
         with self._lock:
             Database.onServerClose()
 
+        # Stop all client threads
         for thread in self._threads:
             self._running.clear()
             thread.join()
@@ -45,6 +47,7 @@ class Server:
         for connection in self._clients.keys():
             self.handleClientDisconnect(connection)
 
+        # Close the server
         self._serverSocket.close()
         
     def sendNewMessages(self, lastPollTime: float) -> list[tuple]:
@@ -102,6 +105,7 @@ class Server:
         return Database.getLastLogin(userID)
     
     def handleClientDisconnect(self, connection: socket.socket) -> None:
+        # Get the user id and remove the element in the dict
         try:
             userID = self._clients.pop(connection)
         except KeyError:
@@ -109,6 +113,8 @@ class Server:
 
         print(f'Client #{userID} has disconnected')
         Database.setLastLogin(userID, time.time())
+        
+        # Close the client's connection if it wasn't already
         connection.close()
 
     def serveClient(self, connection: socket.socket) -> None:
@@ -132,6 +138,7 @@ class Server:
             # NOTE all responses sent to and from the server will be dictionaries
             response = communication.getResponse(connection)
 
+            # Check if client disconnected
             if not response:
                 self.handleClientDisconnect(connection)
                 break
@@ -139,13 +146,16 @@ class Server:
             actionID: int = response['actionID']
             data: list = response['data']
 
+            # Do the action the client requested
             with self._lock:
                 returnValue = actions[actionID](*data)
             
+            # If client requested to login then store their userID for later
             if actionID == communication.LOGIN:
                 with self._lock:
                     self._clients[connection] = returnValue
                  
+            # Return the response to the client
             communication.sendResponse(connection, actionID, returnValue)
             
 if __name__ == '__main__':

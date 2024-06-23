@@ -39,6 +39,5 @@ def sendResponse(connection: socket.socket, actionID: int = None, *args) -> None
     # Send the message header first
     header = len(byte).to_bytes(HEADER_SIZE, 'little')
     connection.sendall(header)
-    # TODO set in try except statement
     # Send the message itself
     connection.sendall(byte)

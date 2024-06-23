@@ -17,7 +17,7 @@ class Database:
     
 
     def getChannelMessages(channelID: int) -> list[tuple[int, str, float]]:
-        '''gets message from MessageDB based on channel id and return it to server.py'''
+        '''gets all messages from MessageDB based on channel id and return it to server.py'''
         # called by server.py - handleOpenConversation
 
         Database.CUR.execute('''SELECT user_id, message, timestamp, FROM Message.DB WHERE channel_id = ? LIMIT 200''', (channelID,))
@@ -25,10 +25,12 @@ class Database:
         
         
 
-    def getMessages(oldestTime: float) -> list[tuple]:
-        '''return all messages until a given time'''
+    def getMessages(channelID: int, oldestTime: float) -> list[tuple]:
+        '''return new messages from a channel since a given time'''
 
-        Database.CUR.execute('''SELECT * FROM MessageDB WHERE timestamp > ?''', (oldestTime, ))
+        Database.CUR.execute('''SELECT * FROM MessageDB 
+                             WHERE timestamp > ?
+                             AND channel_id = ?''', (oldestTime, channelID))
         return Database.CUR.fetchall()
         
 

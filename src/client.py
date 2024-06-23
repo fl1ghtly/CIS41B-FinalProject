@@ -83,9 +83,9 @@ class Client:
         '''Sends a chat message to the server'''
         self.sendAction(communication.SENT_MESSAGE, (message, self._userID, time.time(), channelID))
 
-    def receiveMessages(self, lastPollTime: float) -> list[tuple] | None:
-        '''Receive all new messages since a certain time'''
-        response: dict | None = self.sendAction(communication.REQUEST_MESSAGE_UPDATE, lastPollTime)
+    def receiveMessages(self, channelIDs: list[int], lastPollTime: float) -> list[tuple] | None:
+        '''Receive all new messages from each channel since a certain time'''
+        response: dict | None = self.sendAction(communication.REQUEST_MESSAGE_UPDATE, channelIDs, lastPollTime)
         return self._returnData(response)
     
     def receiveProfileUpdates(self) -> list[tuple] | None:

@@ -13,7 +13,9 @@ class Server:
         self._lock = threading.Lock()
         self._clients: dict[socket.socket, int] = {}
         self._threads: list[threading.Thread] = []
-        
+        self._running = threading.Event()
+        self._running.set()
+
         while True:
             (clientSocket, address) = self._serverSocket.accept()
             print(f'New Connection at address: {address}')
@@ -36,6 +38,7 @@ class Server:
             Database.onServerClose()
 
         for thread in self._threads:
+            self._running.clear()
             thread.join()
 
         # Set everyone's last login time 
@@ -125,7 +128,7 @@ class Server:
             communication.REQUEST_USERNAMES: self.sendUsernames,
             communication.REQUEST_USERID: self.sendUserID}
         
-        while True:
+        while self._running.is_set():
             # NOTE all responses sent to and from the server will be dictionaries
             response = communication.getResponse(connection)
 

@@ -81,7 +81,7 @@ class Client:
     
     def sendMessage(self, message: str, channelID: int) -> None:
         '''Sends a chat message to the server'''
-        self.sendAction(communication.SENT_MESSAGE, (self._userID, message, time.time(), channelID))
+        self.sendAction(communication.SENT_MESSAGE, (message, self._userID, time.time(), channelID))
 
     def receiveMessages(self, lastPollTime: float) -> list[tuple] | None:
         '''Receive all new messages since a certain time'''

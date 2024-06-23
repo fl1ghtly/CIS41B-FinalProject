@@ -1,6 +1,8 @@
 import tkinter as tk
 import tkinter.messagebox as tkmb
+import tkinter.scrolledtext as st
 import client
+import time
 
 class MainGUI(tk.Toplevel):
     # TODO - continously request new message updates using client's receiveMessage func
@@ -70,7 +72,7 @@ class MainGUI(tk.Toplevel):
         # get the channelID between user and user2
         channelID: int = self._client.receiveChannelID(user2ID)
         # open chatGUI
-        chatGUI(self, channelID)
+        chatGUI(self, channelID, self._username, user2)
         
 
 
@@ -255,24 +257,65 @@ class MainGUI(tk.Toplevel):
         passwordEntry = tk.Entry(F, textvariable=passwordText)
         passwordEntry.grid(row=1, column=1)
         tk.Button(newUserWin, text="Submit", command=submit).grid(row=2, pady=10)
-        
-
-
-
-    def _requestMessage(self) -> None:
-        '''gets called continuously to receive message from server'''
-        pass
 
 
 
 class chatGUI(tk.Toplevel):
-    def __init__(self, master: tk.Toplevel, channel: int) -> None:
-        pass
+    
+    DELAY_TIME = 1000
+    def __init__(self, master: tk.Toplevel, connection: client.Client, channel: int, user1: str, user1ID: int, user2: str, user2ID: int) -> None:
+        super().__init__(master)
+        self.title("Chat")
+        self._channelID = channel
+        self._client = connection
+        self._mainUser = user1
+        self._mainUserID = user1ID
+        self._user2 = user2
+        self._user2ID = user2ID
+        self._message = tk.StringVar()
+
+        tk.Label(self, text=self._user2, font=("Helvetica", "20")).grid(padx=20, pady=10, sticky="w")
+
+        lastLogin = self._client.getLastLogin(self._user2ID)
+        if lastLogin == 0:
+            self._lastLoginLabel = tk.Label(self, text="Online", fg="green")
+        else:
+            curr = time.time()
+            difference = curr - lastLogin
+            self._lastLoginLabel = tk.Label(self, text=str(divmod(difference, 3600)[0]))
+        self._lastLoginLabel.grid(sticky="w", padx=20)
+
+        texts = self._client.openConversation(self._channelID)
+        self._textBox = st.ScrolledText(self, height=20, width=30)
+        indexCounter = 1.0
+        for text in texts:
+            if text[0] == self._mainUserID:
+                self._textBox.insert(tk.END, f"You: {text[1]}\n")
+            else:
+                self._textBox.insert(tk.END, f"{self._user2}: {text[1]}\n")
+            indexCounter += 1.0
+        self._textBox.delete(indexCounter)
+        self._textBox.config(state='disabled')
+        self._textBox.grid(padx=10, pady=10)
+        self._textBox.yview_moveto(1)
+        
+        self._messageEntry = tk.Entry(self, textvariable=self._message)
+        self._messageEntry.bind("<Return>", self.sendMessage)
+        self._messageEntry.grid(padx=10, pady=10)
+
+        self.after(chatGUI.DELAY_TIME, self.receiveMessage)
 
 
 
     def sendMessage(self, event) -> None:
-        pass
+        message = self._message.get()
+        self._messageEntry.delete(0, tk.END)
+        self._textBox.config(state="normal")
+        self._textBox.insert(tk.END, "\n"+"You: "+message)
+        self._textBox.config(state="disabled")
+        self._textBox.yview_moveto(1)
+
+        self._client.sendMessage(message, self._channelID)
 
 
 
@@ -317,8 +360,8 @@ class loginGUI(tk.Tk):
             self._usernameEntry.delete(0, tk.END)
             self._passwordEntry.delete(0, tk.END)
 
-            self.wait_window(main)
             self.destroy()
+            self.wait_window(main)
             self.quit()
 
 

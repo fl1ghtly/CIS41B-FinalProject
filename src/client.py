@@ -18,19 +18,29 @@ class Client:
 
         return server
     
+    def _returnData(self, response: dict | None) -> list[tuple] | None:
+        if not response:
+            return None
+        
+        return response['data']
+    
     def disconnect(self) -> None:
         '''Disconnect the client from the server'''
         self._server.close()
     
-    def sendAction(self, actionID: int, *args) -> dict:
+    def sendAction(self, actionID: int, *args) -> dict | None:
         '''Sends and receives information to the server'''
         communication.sendResponse(self._server, actionID, *args)
-        response: dict = communication.getResponse(self._server)
+        response: dict | None = communication.getResponse(self._server)
         return response
         
     def login(self, username: str, password: str) -> int | None:
         '''Logs into an account and returns the user id if successful'''
-        response: dict = self.sendAction(communication.LOGIN, username, password)
+        response: dict | None = self.sendAction(communication.LOGIN, username, password)
+
+        if not response:
+            return None
+        
         id: int = response['data']
         
         if id:
@@ -38,12 +48,13 @@ class Client:
             
         return id
     
-    def openConversation(self, channelID: int) -> list[tuple[int, str, float]]:
+    def openConversation(self, channelID: int) -> list[tuple[int, str, float]] | None:
         '''Requests server for a channel's messages'''
-        response: dict = self.sendAction(communication.OPEN_PAST_CONVERSATION, channelID)
-        return response['data']
+        response: dict | None = self.sendAction(communication.OPEN_PAST_CONVERSATION, channelID)
+        
+        return self._returnData(response)
     
-    def removeConversation(self, channelID: int):
+    def removeConversation(self, channelID: int) -> None:
         '''Request server to hide a conversation'''
         self.sendAction(communication.REMOVE_CONVERSATION, channelID, self._userID, False)
     
@@ -55,49 +66,54 @@ class Client:
         '''Request server to add a conversation with another user'''
         self.sendAction(communication.ADD_CONVERSATION, self._userID, otherUser)
 
-    def register(self, username: str, password: str) -> bool:
+    def register(self, username: str, password: str) -> bool | None:
         '''Request server to create a new account. Returns whether
         account creation is successful'''
-        response: dict = self.sendAction(communication.REGISTER, username, password)
-        return response['data']
+        response: dict | None = self.sendAction(communication.REGISTER, username, password)
+
+        if not response:
+            return None
+        # Special case of the data return where we request the bool itself rather than the
+        # list containing the bool
+        return response['data'][0]
     
     def sendMessage(self, message: str, channelID: int) -> None:
         '''Sends a chat message to the server'''
         self.sendAction(communication.SENT_MESSAGE, (self._userID, message, time.time(), channelID))
 
-    def receiveMessages(self, lastPollTime: float) -> list[tuple]:
+    def receiveMessages(self, lastPollTime: float) -> list[tuple] | None:
         '''Receive all new messages since a certain time'''
-        response: dict = self.sendAction(communication.REQUEST_MESSAGE_UPDATE, lastPollTime)
-        # TODO check if the returned response is the correct one
-        return response['data']
+        response: dict | None = self.sendAction(communication.REQUEST_MESSAGE_UPDATE, lastPollTime)
+
+        return self._returnData(response)
     
-    def receiveProfileUpdates(self) -> list[tuple]:
+    def receiveProfileUpdates(self) -> list[tuple] | None:
         '''Returns a list all profiles'''
-        response: dict = self.sendAction(communication.REQUEST_PROFILE_UPDATE)
-        return response['data']
+        response: dict | None = self.sendAction(communication.REQUEST_PROFILE_UPDATE)
+        return self._returnData(response)
     
-    def receiveUsernames(self) -> dict[str:int]:
+    def receiveUsernames(self) -> dict[str: int] | None:
         '''Receives a list of all the username and user ids the user has conversed with'''
-        response: dict = self.sendAction(communication.REQUEST_USERNAMES, self._userID)
-        return response['data']
+        response: dict | None = self.sendAction(communication.REQUEST_USERNAMES, self._userID)
+        return self._returnData(response)
     
-    def receiveChannelID(self, user2ID: int) -> int:
+    def receiveChannelID(self, user2ID: int) -> int | None:
         '''Receives a channelID that matches with self._userID and user2ID'''
-        response: dict = self.sendAction(communication.REQUEST_CHANNELID, self._userID, user2ID)
-        return response['data']
+        response: dict | None = self.sendAction(communication.REQUEST_CHANNELID, self._userID, user2ID)
+        return self._returnData(response)
     
     def receiveUserID(self, username: str) -> int | None:
         '''Receives the corresponding userID given the username'''
-        response: dict = self.sendAction(communication.REQUEST_USERID, username)
-        return response['data']
+        response: dict | None = self.sendAction(communication.REQUEST_USERID, username)
+        return self._returnData(response)
     
     def getUserID(self) -> int | None:
         return self._userID
     
-    def getLastLogin(self, userID: int) -> float:
+    def getLastLogin(self, userID: int) -> float | None:
         '''Receives the last login time of given userID'''
-        response: dict = self.sendAction(communication.REQUEST_LAST_LOGIN, userID)
-        return response['data']
+        response: dict | None = self.sendAction(communication.REQUEST_LAST_LOGIN, userID)
+        return self._returnData(response)
 
 if __name__ == '__main__':
     client = Client()

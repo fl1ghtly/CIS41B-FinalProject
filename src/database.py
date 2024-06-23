@@ -153,7 +153,7 @@ class Database:
     
 
 
-    def getUsernames(userID: int) -> dict[str:int]:
+    def getUsernames(userID: int) -> list[tuple[str, int]]:
         '''get the usernames of everyone who has conversed with the given userID'''
 
         # fetch all the user1_id and user2_ids tuples that match with userID
@@ -164,7 +164,7 @@ class Database:
         # get the usernames of all the ids
         usernames = [Database.CUR.execute('''SELECT username, user_id FROM UserDB WHERE user_id = ?''', (id,)).fetchone() for id in ids]
         # return the list of usernames
-        return dict(zip(usernames, ids))
+        return usernames
     
 
 

@@ -44,7 +44,7 @@ class Client:
         if not response:
             return None
         
-        id: int = response['data']
+        id: int = response['data'][0]
         
         if id:
           self._userID = id
@@ -93,7 +93,7 @@ class Client:
         response: dict | None = self.sendAction(communication.REQUEST_PROFILE_UPDATE)
         return self._returnData(response)
     
-    def receiveUsernames(self) -> dict[str: int] | None:
+    def receiveUsernames(self) -> list[tuple[str, int]] | None:
         '''Receives a list of all the username and user ids the user has conversed with'''
         response: dict | None = self.sendAction(communication.REQUEST_USERNAMES, self._userID)
         return self._returnData(response)

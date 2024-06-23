@@ -50,13 +50,9 @@ class Server:
         # Close the server
         self._serverSocket.close()
         
-    def sendNewMessages(self, channelIDs: list[int], lastPollTime: float) -> list[tuple]:
+    def sendNewMessages(self, channelID: int, lastPollTime: float) -> list[tuple]:
         '''Return all messages since a given time'''
-        newMessages = []
-        for id in channelIDs:
-            # Get the new messages for a channel
-            newMessages.extend(Database.getMessages(id, lastPollTime))
-        return newMessages
+        return Database.getMessages(channelID, lastPollTime)
 
     def sendProfiles(self) -> list[tuple]:
         '''Return all registered users'''

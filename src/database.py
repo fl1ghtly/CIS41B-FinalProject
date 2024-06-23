@@ -28,7 +28,7 @@ class Database:
     def getMessages(channelID: int, oldestTime: float) -> list[tuple]:
         '''return new messages from a channel since a given time'''
 
-        Database.CUR.execute('''SELECT * FROM MessageDB 
+        Database.CUR.execute('''SELECT user_id, message FROM MessageDB 
                              WHERE timestamp > ?
                              AND channel_id = ?''', (oldestTime, channelID))
         return Database.CUR.fetchall()

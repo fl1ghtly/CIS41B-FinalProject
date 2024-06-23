@@ -43,14 +43,6 @@ class Server:
                 
     def endServer(self) -> None:
         '''Closes the server and saves any changes made to the database'''
-
-        # Stop all client threads
-        '''
-        for thread in self._threads:
-            self._running.clear()
-            thread.join()
-        '''
-
         # Set everyone's last login time 
         # NOTE Don't use self._clients.key() because it returns 
         # the view which raises an error when the dictionary 

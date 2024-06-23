@@ -5,12 +5,11 @@ import client
 import time
 
 class MainGUI(tk.Toplevel):
-    # TODO - continously request new message updates using client's receiveMessage func
     def __init__(self, master: tk.Tk, connection: client.Client, userID: int, username: str):
         '''creates the main chat app window'''
 
         # create instance variables
-        super.__init__(master)
+        super().__init__(master)
         self.title("App")
         self._client = connection
         self._userID = userID
@@ -29,12 +28,14 @@ class MainGUI(tk.Toplevel):
         S.grid(row=0, column=1, sticky='ns')
 
         # create listbox to display past conversations
-        self._usernamesDict: dict[str,int] = self._client.receiveUsernames()
-        usernames = self._usernamesDict.keys()
         LB = tk.Listbox(F1, height=10, width=20, yscrollcommand=S.set)
-        LB.insert(tk.END, *usernames)
+        self._usernamesList: list[tuple[str, int]] = self._client.receiveUsernames()[0]
+        if len(self._usernamesList) != 0:
+            for i in range(len(self._usernamesList)):
+                username = self._usernamesList[i][0]
+                LB.insert(tk.END, username)
         LB.configure(font=("Courier New", "15"))
-        LB.bind("<<ListboxSelect>>", lambda: self._openChat(LB))
+        LB.bind("<<ListboxSelect>>", lambda event: self._openChat(event, LB, self._usernamesList))
         LB.grid(row=0, column=0)
         # config scrollbar together with listbox
         S.config(command=LB.yview)
@@ -45,8 +46,8 @@ class MainGUI(tk.Toplevel):
         F2 = tk.Frame(self)
 
         # create button to delete chat and open a new chat
-        tk.Button(F2, text="Delete Chat", fg="red", command=lambda: self._removeChat(LB, self._usernamesDict), font=("Courier New", "12")).grid(row=0, pady=10)
-        tk.Button(F2, text="New Chat", fg= "blue", command=self._openChat, font=("Courier New", "12")).grid(row=1, pady=10)
+        tk.Button(F2, text="Delete Chat", fg="red", command=lambda: self._removeChat(LB, self._usernamesList), font=("Courier New", "12")).grid(row=0, pady=10)
+        tk.Button(F2, text="New Chat", fg= "blue", command=lambda: self._createChat(LB), font=("Courier New", "12")).grid(row=1, pady=10)
         # grid frame
         F2.grid(row=2, column=1, padx=20)
 
@@ -59,20 +60,21 @@ class MainGUI(tk.Toplevel):
         self.config(menu=menu)
 
 
-
-    def _openChat(self, event, LB: tk.Listbox, D: dict[str,int]) -> None:
+ 
+    def _openChat(self, event, LB: tk.Listbox, D: list[tuple[str, int]]) -> None:
         '''opens a new chatGUI when user clicks on a LB item'''
 
         # get the username the user selected
-        user2: str = LB.get(LB.curselection())
+        user2: int = LB.curselection()[0]
+        user2Name = LB.get(user2)
         # clear user selection
         LB.selection_clear(0, tk.END)
         # get the corresponding userID
-        user2ID: int = D[user2]
+        user2ID: int = D[user2][1]
         # get the channelID between user and user2
-        channelID: int = self._client.receiveChannelID(user2ID)
+        channelID: int = self._client.receiveChannelID(user2ID)[0]
         # open chatGUI
-        chatGUI(self, channelID, self._username, user2)
+        chatGUI(self, self._client, channelID, self._userID, user2Name, user2ID)
         
 
 
@@ -86,8 +88,8 @@ class MainGUI(tk.Toplevel):
             if len(selected) > 0: # if the list is not empty
                 # get the list of corresponding usernames
                 selectedChats: list[str] = [removeLB.get(index) for index in selected]
-                # get the list of corresponding userIDs while also popping them out from self._usernamesDict
-                removedChatIDs = [self._usernamesDict.pop(chat) for chat in selectedChats]
+                # get the list of corresponding userIDs while also popping them out from self._usernamesList
+                removedChatIDs = [self._usernamesList.pop(chat) for chat in selectedChats]
                 # get the list of corresponding channelIDs
                 removedChatChannels = [self._client.receiveChannelID(id) for id in removedChatIDs]
                 # for every channelID...
@@ -96,7 +98,7 @@ class MainGUI(tk.Toplevel):
                     self._client.removeConversation(channelID)
 
                 LB.delete(0, tk.END)
-                LB.insert(tk.END, *self._usernamesDict)
+                LB.insert(tk.END, *self._usernamesList)
 
                 removeWin.destroy()
 
@@ -140,8 +142,9 @@ class MainGUI(tk.Toplevel):
             if userID != None: # if the username exists...
                 # create a new conversation
                 self._client.addConversation(username)
-                # insert the nickname into the LB
+                # insert the nickname into the LB and self._usernamesList
                 LB.insert(tk.END, username)
+                self._usernamesList.insert((username, userID))
                 # destroy createWin
                 createWin.destroy()
             else: # if the username does not exist...
@@ -208,10 +211,10 @@ class MainGUI(tk.Toplevel):
 
         # populate nickWin
         tk.Label(nickWin, text="Type in a new username", font=("Courier New", 10)).grid(row=0, padx=10, pady=10)
-        tk.Label(F, text="New Nickname:").grid(row=1, column=0)
-        nicknameEntry = tk.Entry(nickWin, textvariable=entryText)
+        tk.Label(F, text="New Nickname:").grid(row=0, column=0)
+        nicknameEntry = tk.Entry(F, textvariable=entryText)
         nicknameEntry.bind("<Return>", enter)
-        nicknameEntry.grid(row=1, column=1)
+        nicknameEntry.grid(row=0, column=1)
 
 
 
@@ -263,12 +266,11 @@ class MainGUI(tk.Toplevel):
 class chatGUI(tk.Toplevel):
     
     DELAY_TIME = 1000
-    def __init__(self, master: tk.Toplevel, connection: client.Client, channel: int, user1: str, user1ID: int, user2: str, user2ID: int) -> None:
+    def __init__(self, master: tk.Toplevel, connection: client.Client, channel: int, user1ID: int, user2: str, user2ID: int) -> None:
         super().__init__(master)
         self.title("Chat")
         self._channelID = channel
         self._client = connection
-        self._mainUser = user1
         self._mainUserID = user1ID
         self._user2 = user2
         self._user2ID = user2ID
@@ -277,27 +279,28 @@ class chatGUI(tk.Toplevel):
 
         tk.Label(self, text=self._user2, font=("Helvetica", "20")).grid(padx=20, pady=10, sticky="w")
 
-        lastLogin = self._client.getLastLogin(self._user2ID)
+        lastLogin = self._client.getLastLogin(self._user2ID)[0]
         if lastLogin == 0:
             self._lastLoginLabel = tk.Label(self, text="Online", fg="green")
         else:
             curr = time.time()
             difference = curr - lastLogin
-            self._lastLoginLabel = tk.Label(self, text=str(divmod(difference, 3600)[0]))
+            self._lastLoginLabel = tk.Label(self, text=f"Last online {int(divmod(difference, 3600)[0])} hours ago")
         self._lastLoginLabel.grid(sticky="w", padx=20)
 
-        texts = self._client.openConversation(self._channelID)
-        self._textBox = st.ScrolledText(self, height=20, width=30)
-        for text in texts:
-            if text[0] == self._mainUserID:
-                self._textBox.insert(tk.END, "\n"+"You: "+text[1])
-            else:
-                self._textBox.insert(tk.END, "\n"+self._user2+": "+text[1])
+        texts = self._client.openConversation(self._channelID)[0]
+        self._textBox = st.ScrolledText(self, height=20, width=40)
+        if len(texts) != 0:
+            for text in texts:
+                if text[0] == self._mainUserID:
+                    self._textBox.insert(tk.END, "\n"+"You: "+text[1])
+                else:
+                    self._textBox.insert(tk.END, "\n"+self._user2+": "+text[1])
         self._textBox.config(state='disabled')
         self._textBox.grid(padx=10, pady=10)
         self._textBox.yview_moveto(1)
         
-        self._messageEntry = tk.Entry(self, textvariable=self._message)
+        self._messageEntry = tk.Entry(self, textvariable=self._message, width=40)
         self._messageEntry.bind("<Return>", self.sendMessage)
         self._messageEntry.grid(padx=10, pady=10)
 
@@ -318,16 +321,18 @@ class chatGUI(tk.Toplevel):
 
 
     def receiveMessage(self) -> None:
-        messages: list[tuple[int, str]] = self._client.receiveMessages(self._channelID, self._lastPollTime)
-        self._textBox.config(state="normal")
-        for message in messages:
-            if message[0] == self._mainUserID:
-                self._textBox.insert(tk.END, "\n"+"You: "+message[1])
-            else:
-                self._textBox.insert(tk.END, "\n"+self._user2+": "+message[1])
-        self._textBox.config(state="disabled")
+        messages: list[tuple[int, str]] = self._client.receiveMessages(self._channelID, self._lastPollTime)[0]
+        
+        if len(messages) != 0:
+            self._textBox.config(state="normal")
+            for message in messages:
+                if message[0] != self._mainUserID:
+                    self._textBox.insert(tk.END, "\n"+self._user2+": "+message[1])
+            self._textBox.config(state="disabled")
 
         self._lastPollTime = time.time()
+
+        lastLogin = self._client.getLastLogin(self._user2ID)
 
         self.after(chatGUI.DELAY_TIME, self.receiveMessage)
 
@@ -363,13 +368,14 @@ class loginGUI(tk.Tk):
 
         if self._userID == None:
             tkmb.showerror("Error", "Login failed. Please check your username and password and try again")
+            self._client.disconnect()
         else:
             main = MainGUI(self, self._client, self._userID, self._usernameVar.get())
 
             self._usernameEntry.delete(0, tk.END)
             self._passwordEntry.delete(0, tk.END)
 
-            self.destroy()
+            self.withdraw()
             self.wait_window(main)
             self.quit()
 

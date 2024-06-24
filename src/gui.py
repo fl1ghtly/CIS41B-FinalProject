@@ -246,7 +246,7 @@ class MainGUI(tk.Toplevel):
         F.grid(row=1, padx=10)
 
         # get the list of tuples of all userIDs and usernames
-        users = self._client.receiveProfileUpdates()
+        users = self._client.receiveProfileUpdates()[0]
         # get all the usernames
         nickList: list[str] = [user[1] for user in users]
         # create StringVars for entry widgets

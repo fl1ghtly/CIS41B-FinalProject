@@ -64,6 +64,23 @@ class Database:
 
 
 
+    def getVisibility(channelID: int, userID: int) -> bool:
+        '''gets the visibility of a channel for one user'''
+
+        # get the entire row where channelID matches
+        row = Database.CUR.execute('''SELECT * FROM ChannelDB WHERE channel_id = ?''', (channelID,)).fetchone
+        if row[1] == userID: # if user1_id matches userID...
+            if row[2] == 1: # if user1_visibility is true...
+                return True
+            else: # if user1_visibility is false...
+                return False
+        else:
+            if row[4] == 1:
+                return True
+            else:
+                return False
+
+
 
     def hideConversation(channelID: int, userID: int, visibliity: bool) -> None:
         '''change display status of user1 and/or user2'''

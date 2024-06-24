@@ -89,14 +89,20 @@ class Server:
         '''Create a new conversation between two users'''
         user2ID = Database.getUserID(user2Name)
 
-        Database.addConversation(user1ID, user2ID)
+        # Make sure that the users are different
+        if user1ID != user2ID:
+            Database.addConversation(user1ID, user2ID)
 
     def sendUsernames(self, userID: int) -> list[tuple[str, int]]:
         '''Returns the list of usernames and user ids the given userID has conversed with'''
         return Database.getUsernames(userID)
     
-    def sendChannelID(self, user1ID: int, user2ID: int) -> int:
+    def sendChannelID(self, user1ID: int, user2ID: int) -> int | None:
         '''Returns the channelID that matches with user1ID and user2ID'''
+        # Can't have a conversation with self
+        if user1ID == user2ID:
+            return None
+        
         return Database.getChannelID(user1ID, user2ID)
     
     def sendUserID(self, username: str) -> int | None:

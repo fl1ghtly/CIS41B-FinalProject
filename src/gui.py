@@ -365,6 +365,7 @@ class loginGUI(tk.Tk):
         self.title("Login")
         self._usernameVar = tk.StringVar()
         self._passwordVar = tk.StringVar()
+        self._client = client.Client()
         
         tk.Label(self, text="Sign In", font=("Helvetica", "20")).grid(row=0, column=0, padx=10, pady=10, columnspan=2)
         tk.Label(self, text="Username", font=("Helvetica", "12")).grid(row=1, column=0, padx=10)
@@ -375,12 +376,16 @@ class loginGUI(tk.Tk):
         self._usernameEntry.grid(row=1, column=1, padx=10, pady=10)
         self._passwordEntry.grid(row=2, column=1, padx=10, pady=10)
 
-        submitBtn = tk.Button(self, text="Login", font=("Helvetica", "15"), command=self.checkCredential).grid(row=3, column=0, columnspan=2, padx=10, pady=10)
+        tk.Button(self, text="Login", font=("Helvetica", "15"), command=self.checkCredential).grid(row=3, column=0, padx=10, pady=10)
+        tk.Button(self, text="Register", font=("Helvetica", "15"), command=self.openRegistrationWindow).grid(row=3, column=1, padx=10, pady=10)
 
 
+
+    def openRegistrationWindow(self) -> None:
+        registerWin = RegistrationGUI(self, self._client)
+        self.wait_window(registerWin)
 
     def checkCredential(self) -> None:
-        self._client = client.Client()
         self._userID = self._client.login(self._usernameVar.get(), self._passwordVar.get())
 
         if self._userID == None:
@@ -397,6 +402,51 @@ class loginGUI(tk.Tk):
             self.withdraw()
             self.wait_window(main)
             self.quit()
+
+
+
+class RegistrationGUI(tk.Toplevel):
+    def __init__(self, master: tk.Tk, client: client.Client) -> None:
+        super().__init__(master)
+        self._master = master
+        self._client = client
+
+        self.title('Register')
+        self.focus_set()
+        self.grab_set()
+        self._usernameVar = tk.StringVar()
+        self._passwordVar = tk.StringVar()
+
+        tk.Label(self, text='Register', font=('Helvetica', '20')).grid(row=0, column=0, padx=10, pady=10, columnspan=2)
+        tk.Label(self, text="Username", font=("Helvetica", "12")).grid(row=1, column=0, padx=10)
+        tk.Label(self, text="Password", font=("Helvetica", "12")).grid(row=2, column=0, padx=10)
+
+        self._usernameEntry = tk.Entry(self, textvariable=self._usernameVar)
+        self._passwordEntry = tk.Entry(self, textvariable=self._passwordVar)
+        self._usernameEntry.grid(row=1, column=1, padx=10, pady=10)
+        self._passwordEntry.grid(row=2, column=1, padx=10, pady=10)
+
+        tk.Button(self, text="Register", font=("Helvetica", "15"), command=self.register).grid(row=4, column=0, columnspan=2, padx=10, pady=10)
+
+
+
+    def register(self) -> None:
+        '''Requests the server to register a new account'''
+        success = self._client.register(self._usernameVar.get(), self._passwordVar.get())
+
+        if success:
+            self.destroy()
+            return
+        
+        tk.Label(self, 
+                 text='Registration failed. Please try again', 
+                 font=('Helvetica', '12'), 
+                 fg='red').grid(
+                     row=3,
+                     column=0,
+                     padx=10,
+                     columnspan=2
+                 )
 
 
 

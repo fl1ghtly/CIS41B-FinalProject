@@ -56,7 +56,7 @@ class Database:
 
     def addConversation(user1: int, user2: int) -> None:
         '''creates a new channel between user1 and user2'''
-        # called by server.py - 
+        # called by server.py - handleAddConversation
 
         Database.CUR.execute('''INSERT INTO ChannelDB (user1_id, user2_id, user1_display, user2_display) VALUES (?, ?, ?, ?)''',
                              (user1, user2, 1, 1))

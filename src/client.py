@@ -121,3 +121,8 @@ class Client:
         '''Receives the last login time of given userID'''
         response: dict | None = self.sendAction(communication.REQUEST_LAST_LOGIN, userID)
         return self._returnData(response)
+    
+    def getVisibility(self) -> list[bool]:
+        '''Receives the list of visibility for the user'''
+        response: dict | None = self.sendAction(communication.REQUEST_CHANNEL_VISIBILITY, self._userID)
+        return self._returnData(response)

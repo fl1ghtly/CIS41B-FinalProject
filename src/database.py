@@ -58,9 +58,13 @@ class Database:
         '''creates a new channel between user1 and user2'''
         # called by server.py - handleAddConversation
 
-        Database.CUR.execute('''INSERT INTO ChannelDB (user1_id, user2_id, user1_display, user2_display) VALUES (?, ?, ?, ?)''',
-                             (user1, user2, 1, 1))
-        Database.CONN.commit()
+        row = Database.CUR.execute('''SELECT * FROM ChannelDB WHERE (user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)''', (user1, user2, user2, user1)).fetchone()
+        if row == None:
+            Database.CUR.execute('''INSERT INTO ChannelDB (user1_id, user2_id, user1_display, user2_display) VALUES (?, ?, ?, ?)''',
+                                (user1, user2, 1, 1))
+            Database.CONN.commit()
+        else:
+            Database.CUR.execute('''UPDATE ChannelDB SET user1_display = 1, user2_display = 1 WHERE channel_id = ?''', (row[0],))
 
 
 

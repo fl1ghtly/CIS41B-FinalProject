@@ -37,6 +37,10 @@ New Features:
         nickname and register new accounts
         - Implementation of text widgets in order to display the texts
         sent between users
+    src/server.py
+        - Use of sendall() to ensure all data of arbitrary size is sent
+        - Use of shutdown(socket.SHUT_RDWR) to gracefully close sockets
+        and inform connectors of their shutdown.
 
 
 

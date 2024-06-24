@@ -12,7 +12,6 @@ class Server:
         self._serverSocket: socket.socket = None
         self._lock = threading.Lock()
         self._clients: dict[socket.socket, int] = {}
-        self._threads: list[threading.Thread] = []
 
     def _run(self) -> None:
         '''Accept and handle new client connections'''
@@ -20,7 +19,6 @@ class Server:
             (clientSocket, address) = self._serverSocket.accept()
             print(f'New Connection at address: {address}')
             thread = threading.Thread(target=self.serveClient, args=(clientSocket,))
-            self._threads.append(thread)
             thread.start()
         
     def startServer(self) -> None:
@@ -124,6 +122,7 @@ class Server:
         self.updateLastLogin(userID, time.time())
         
         # Close the client's connection if it wasn't already
+        # Will also implicitly end the client thread as the socket is shutdown
         connection.shutdown(socket.SHUT_RDWR)
         connection.close()
 

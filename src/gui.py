@@ -105,8 +105,15 @@ class MainGUI(tk.Toplevel):
                 LB.delete(0, tk.END)
                 LB.insert(tk.END, *users)
 
+                LB.bind("<<ListboxSelect>>", lambda event: self._openChat(event, LB, self._usernamesList))
                 removeWin.destroy()
 
+        def reBind():
+            LB.bind("<<ListboxSelect>>", lambda event: self._openChat(event, LB, self._usernamesList))
+            removeWin.destroy()
+
+
+        LB.unbind("<<ListboxSelect>>")
         # create window for removing conversation
         removeWin = tk.Toplevel(self)
         convoList = LB.get(0, tk.END)
@@ -131,6 +138,8 @@ class MainGUI(tk.Toplevel):
         # create a button to sumbit user choices
         tk.Button(removeWin, text="Submit", font=("Courier New", "13"), command=remove).grid(padx=10, pady=10)
 
+        removeWin.protocol("WM_DELETE_WINDOW", reBind)
+
 
 
     def _createChat(self, LB: tk.Listbox) -> None:
@@ -149,7 +158,7 @@ class MainGUI(tk.Toplevel):
                 self._client.addConversation(username)
                 # insert the nickname into the LB and self._usernamesList
                 LB.insert(tk.END, username)
-                self._usernamesList.extend((username, userID))
+                self._usernamesList.append((username, userID))
                 # destroy createWin
                 createWin.destroy()
             else: # if the username does not exist...

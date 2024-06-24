@@ -344,16 +344,17 @@ class chatGUI(tk.Toplevel):
         message = self._message.get()
         # clear the entry widget
         self._messageEntry.delete(0, tk.END)
-        # enable editing for text widget
-        self._textBox.config(state="normal")
-        # display the message at the bottom of the text widget
-        self._textBox.insert(tk.END, "\n"+"You: "+message)
-        # disable editing of text widget
-        self._textBox.config(state="disabled")
-        self._textBox.yview_moveto(1)
+        if len(message) != 0:
+            # enable editing for text widget
+            self._textBox.config(state="normal")
+            # display the message at the bottom of the text widget
+            self._textBox.insert(tk.END, "\n"+"You: "+message)
+            # disable editing of text widget
+            self._textBox.config(state="disabled")
+            self._textBox.yview_moveto(1)
 
-        # send the message to the other client
-        self._client.sendMessage(message, self._channelID)
+            # send the message to the other client
+            self._client.sendMessage(message, self._channelID)
 
 
 

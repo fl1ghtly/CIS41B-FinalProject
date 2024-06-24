@@ -6,6 +6,7 @@ import time
 
 class MainGUI(tk.Toplevel):
     DELAY_TIME = 10000
+
     def __init__(self, master: tk.Tk, connection: client.Client, userID: int, username: str):
         '''creates the main chat app window'''
 
@@ -30,11 +31,13 @@ class MainGUI(tk.Toplevel):
 
         # create listbox to display past conversations
         LB = tk.Listbox(F1, height=10, width=20, yscrollcommand=S.set)
+        # get the list of users that the client has conversed with
         self._usernamesList: list[tuple[str, int]] = self._client.receiveUsernames()[0]
+        # get whether or not the channels are visible to the client
         self._visibility = self._client.getVisibility()[0]
         if len(self._usernamesList) != 0:
             for i in range(len(self._usernamesList)):
-                if self._visibility[i]:
+                if self._visibility[i]: # if the visibility is True, show the user
                     username = self._usernamesList[i][0]
                     LB.insert(tk.END, username)
         LB.configure(font=("Courier New", "15"))
@@ -62,6 +65,7 @@ class MainGUI(tk.Toplevel):
         settings.add_command(label="Register New Account", command=self._createUser)
         self.config(menu=menu)
 
+        # update the list of conversations after every DELAY_TIME
         self.after(MainGUI.DELAY_TIME, lambda: self._getNewConvos(LB))
 
 
@@ -104,6 +108,7 @@ class MainGUI(tk.Toplevel):
                     # remove it from the database
                     self._client.removeConversation(channelID[0])
 
+                # get the new list of users and update LB
                 users = [item[0] for item in self._usernamesList]
                 LB.delete(0, tk.END)
                 LB.insert(tk.END, *users)
@@ -111,12 +116,15 @@ class MainGUI(tk.Toplevel):
                 LB.bind("<<ListboxSelect>>", lambda event: self._openChat(event, LB, self._usernamesList))
                 removeWin.destroy()
 
+        # define reBind function to rebind function to <<ListboxSelect>>
         def reBind():
             LB.bind("<<ListboxSelect>>", lambda event: self._openChat(event, LB, self._usernamesList))
             removeWin.destroy()
 
 
+        # unbind _openChat from LB to prevent IndexErrors
         LB.unbind("<<ListboxSelect>>")
+
         # create window for removing conversation
         removeWin = tk.Toplevel(self)
         convoList = LB.get(0, tk.END)
@@ -141,6 +149,7 @@ class MainGUI(tk.Toplevel):
         # create a button to sumbit user choices
         tk.Button(removeWin, text="Submit", font=("Courier New", "13"), command=remove).grid(padx=10, pady=10)
 
+        # on window close, call reBind
         removeWin.protocol("WM_DELETE_WINDOW", reBind)
 
 
@@ -157,10 +166,11 @@ class MainGUI(tk.Toplevel):
             # get the userID that corresponds with the user given username
             userID = self._client.receiveUserID(username)[0]
 
+            # if the channel already exists and is visible to the user
             if (username, userID) in self._usernamesList and self._visibility[self._usernamesList.index((username, userID))]:
                 tkmb.showinfo("Notice", "Channel already exists")
                 createWin.destroy()
-            else:
+            else: 
                 if userID != None: # if the username exists...
                     # create a new conversation
                     self._client.addConversation(username)
@@ -249,25 +259,31 @@ class MainGUI(tk.Toplevel):
 
     def _getNewConvos(self, LB: tk.Listbox) -> None:
         '''poll for changes in conversation list'''
-        print("polling")
+
+        # clear LB
         LB.delete(0, tk.END)
+        # get the list of users the client has conversed with
         self._usernamesList = self._client.receiveUsernames()[0]
+        # get the correspondinb visiblity of the respecive channels
         self._visibility = self._client.getVisibility()[0]
         if len(self._usernamesList) != 0:
             for i in range(len(self._usernamesList)):
-                if self._visibility[i]:
+                if self._visibility[i]: # if the visibility is True, display the user
                     username = self._usernamesList[i][0]
                     LB.insert(tk.END, username)
 
+        # polls itself after DELAY_TIME
         self.after(MainGUI.DELAY_TIME, lambda: self._getNewConvos(LB))
 
 
 
-
 class chatGUI(tk.Toplevel):
-    
     DELAY_TIME = 1000
+
     def __init__(self, master: tk.Toplevel, connection: client.Client, channel: int, user1ID: int, user2: str, user2ID: int) -> None:
+        '''creates a chatGUI window for conversation'''
+
+        # create instance variables
         super().__init__(master)
         self.title("Chat")
         self._channelID = channel
@@ -278,20 +294,25 @@ class chatGUI(tk.Toplevel):
         self._message = tk.StringVar()
         self._lastPollTime = time.time()
 
+        # display the username of the user the client is conversing with
         tk.Label(self, text=self._user2, font=("Helvetica", "20")).grid(padx=20, pady=10, sticky="w")
 
+        # get the last login time of the other user
         lastLogin = self._client.getLastLogin(self._user2ID)[0]
-        if lastLogin == 0:
+        if lastLogin == 0: # if the other user is currently online
             self._lastLoginLabel = tk.Label(self, text="Online", fg="green")
-        else:
+        else: # if the other user is currently offline
+            # get the time difference from when the other user logged off until now
             curr = time.time()
             difference = curr - lastLogin
+            # display the difference
             if divmod(difference, 3600)[0] == 0:
                 self._lastLoginLabel = tk.Label(self, text=f"Last online {int(divmod(difference, 60)[0])} minutes ago")
             else:
                 self._lastLoginLabel = tk.Label(self, text=f"Last online {int(divmod(difference, 3600)[0])} hours ago")
         self._lastLoginLabel.grid(sticky="w", padx=20)
 
+        # get messages
         texts = self._client.openConversation(self._channelID)[0]
         self._textBox = st.ScrolledText(self, height=20, width=40)
         if len(texts) != 0:
@@ -300,53 +321,75 @@ class chatGUI(tk.Toplevel):
                     self._textBox.insert(tk.END, "\n"+"You: "+text[1])
                 else:
                     self._textBox.insert(tk.END, "\n"+self._user2+": "+text[1])
+        # disable editing the text widget
         self._textBox.config(state='disabled')
         self._textBox.grid(padx=10, pady=10)
+        # move the viewpoint to the bottom (the most current message)
         self._textBox.yview_moveto(1)
         
+        # create an entry widget for the user to send messages
         self._messageEntry = tk.Entry(self, textvariable=self._message, width=40)
         self._messageEntry.bind("<Return>", self.sendMessage)
         self._messageEntry.grid(padx=10, pady=10)
 
+        # poll for new messages after DELAY_TIME
         self.after(chatGUI.DELAY_TIME, self.receiveMessage)
 
 
 
     def sendMessage(self, event) -> None:
+        '''send message to the other user'''
+
+        # get the message
         message = self._message.get()
+        # clear the entry widget
         self._messageEntry.delete(0, tk.END)
+        # enable editing for text widget
         self._textBox.config(state="normal")
+        # display the message at the bottom of the text widget
         self._textBox.insert(tk.END, "\n"+"You: "+message)
+        # disable editing of text widget
         self._textBox.config(state="disabled")
         self._textBox.yview_moveto(1)
 
+        # send the message to the other client
         self._client.sendMessage(message, self._channelID)
 
 
 
     def receiveMessage(self) -> None:
+        '''receive messages and online status of the other user'''
+
+        # receive messages
         messages: list[tuple[int, str]] = self._client.receiveMessages(self._channelID, self._lastPollTime)[0]
         
-        if len(messages) != 0:
+        if len(messages) != 0: # if messages were received
+            # enable editing of text widget
             self._textBox.config(state="normal")
             for message in messages:
-                if message[0] != self._mainUserID:
+                if message[0] != self._mainUserID: # if the other user sent the message, display the message
                     self._textBox.insert(tk.END, "\n"+self._user2+": "+message[1])
+            # disable editing of text widget
             self._textBox.config(state="disabled")
 
+        # set _lastPollTime to the current time
         self._lastPollTime = time.time()
 
+        # get the last login time of the other user
         lastLogin = self._client.getLastLogin(self._user2ID)[0]
-        if lastLogin == 0:
+        if lastLogin == 0: # if the other user is currently online
             self._lastLoginLabel.config(text="Online", fg="green")
-        else:
+        else: # if the other user is currently offline
+            # get the time difference from when the other user logged off until now
             cur = time.time()
             difference = cur - lastLogin
+            # display the difference
             if divmod(difference, 3600)[0] == 0:
                 self._lastLoginLabel.config(text=f"Last online {int(divmod(difference, 60)[0])} minutes ago", fg="black")
             else:
                 self._lastLoginLabel.config(text=f"Last online {int(divmod(difference, 3600)[0])} hours ago", fg="black")
 
+        # polls itself after DELAY_TIME
         self.after(chatGUI.DELAY_TIME, self.receiveMessage)
 
 
@@ -357,12 +400,14 @@ class loginGUI(tk.Tk):
            shows an error MessageBox if username and/or password does not match database records
            creates the main gui window if records match'''
 
+        # create instance variables
         super().__init__()
         self.title("Login")
         self._usernameVar = tk.StringVar()
         self._passwordVar = tk.StringVar()
         self._client = client.Client()
         
+        # populate the window
         tk.Label(self, text="Sign In", font=("Helvetica", "20")).grid(row=0, column=0, padx=10, pady=10, columnspan=2)
         tk.Label(self, text="Username", font=("Helvetica", "12")).grid(row=1, column=0, padx=10)
         tk.Label(self, text="Password", font=("Helvetica", "12")).grid(row=2, column=0, padx=10)
@@ -378,24 +423,30 @@ class loginGUI(tk.Tk):
 
 
     def openRegistrationWindow(self) -> None:
+        '''open a RegistrationGUI to register a new user'''
+
         registerWin = RegistrationGUI(self, self._client)
         self.wait_window(registerWin)
 
 
 
     def checkCredential(self) -> None:
+        '''check if the username and password matches data base records'''
+
+        # try to get the userID that matches with the given username and password
         self._userID = self._client.login(self._usernameVar.get(), self._passwordVar.get())
 
-        if self._userID == None:
+        if self._userID == None: # if records didn't match
             tkmb.showerror("Error", "Login failed. Please check your username and password and try again")
             self._usernameEntry.delete(0, tk.END)
             self._passwordEntry.delete(0, tk.END)
-        else:
+        else: # if records match
             main = MainGUI(self, self._client, self._userID, self._usernameVar.get())
 
             self._usernameEntry.delete(0, tk.END)
             self._passwordEntry.delete(0, tk.END)
 
+            # make loginGUI invisible
             self.withdraw()
             self.wait_window(main)
             self.quit()
@@ -436,17 +487,21 @@ class RegistrationGUI(tk.Toplevel):
 
     def submit(self):
         '''Submit registration info'''
+
+        # get username and password
         username = self._usernameText.get()
         password = self._passwordText.get()
 
+        # clear entry widgets
         self._usernameEntry.delete(0, tk.END)
         self._passwordEntry.delete(0, tk.END)
 
+        # register the user and get the status
         success = self._client.register(username, password)
-        if success:
+        if success: # if the registration was successful
             tkmb.showinfo("Successful", "The new user was successfully created")
             self.destroy()
-        else:
+        else: # if the username is a duplicate
             tkmb.showerror("Error", "Duplicate username, please choose another username")
             self.focus_set()
 

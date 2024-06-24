@@ -46,7 +46,7 @@ class MainGUI(tk.Toplevel):
         F2 = tk.Frame(self)
 
         # create button to delete chat and open a new chat
-        tk.Button(F2, text="Delete Chat", fg="red", command=lambda: self._removeChat(LB, self._usernamesList), font=("Courier New", "12")).grid(row=0, pady=10)
+        tk.Button(F2, text="Delete Chat", fg="red", command=lambda: self._removeChat(LB), font=("Courier New", "12")).grid(row=0, pady=10)
         tk.Button(F2, text="New Chat", fg= "blue", command=lambda: self._createChat(LB), font=("Courier New", "12")).grid(row=1, pady=10)
         # grid frame
         F2.grid(row=2, column=1, padx=20)
@@ -89,13 +89,15 @@ class MainGUI(tk.Toplevel):
                 # get the list of corresponding usernames
                 selectedChats: list[str] = [removeLB.get(index) for index in selected]
                 # get the list of corresponding userIDs while also popping them out from self._usernamesList
-                removedChatIDs = [self._usernamesList.pop(chat) for chat in selectedChats]
+                removedChatIDs = [self._usernamesList[index] for index in selected]
+                for id in removedChatIDs:
+                    self._usernamesList.remove(id)
                 # get the list of corresponding channelIDs
-                removedChatChannels = [self._client.receiveChannelID(id) for id in removedChatIDs]
+                removedChatChannels = [self._client.receiveChannelID(id[1]) for id in removedChatIDs]
                 # for every channelID...
                 for channelID in removedChatChannels:
                     # remove it from the database
-                    self._client.removeConversation(channelID)
+                    self._client.removeConversation(channelID[0])
 
                 LB.delete(0, tk.END)
                 LB.insert(tk.END, *self._usernamesList)
@@ -138,13 +140,13 @@ class MainGUI(tk.Toplevel):
             # clear the entry widget
             usernameEntry.delete(0, tk.END)
             # get the userID that corresponds with the user given username
-            userID = self._client.receiveUserID(username)
+            userID = self._client.receiveUserID(username)[0]
             if userID != None: # if the username exists...
                 # create a new conversation
                 self._client.addConversation(username)
                 # insert the nickname into the LB and self._usernamesList
                 LB.insert(tk.END, username)
-                self._usernamesList.insert((username, userID))
+                self._usernamesList.extend((username, userID))
                 # destroy createWin
                 createWin.destroy()
             else: # if the username does not exist...
@@ -285,7 +287,10 @@ class chatGUI(tk.Toplevel):
         else:
             curr = time.time()
             difference = curr - lastLogin
-            self._lastLoginLabel = tk.Label(self, text=f"Last online {int(divmod(difference, 3600)[0])} hours ago")
+            if divmod(difference, 3600)[0] == 0:
+                self._lastLoginLabel = tk.Label(self, text=f"Last online {int(divmod(difference, 60)[0])} minutes ago")
+            else:
+                self._lastLoginLabel = tk.Label(self, text=f"Last online {int(divmod(difference, 3600)[0])} hours ago")
         self._lastLoginLabel.grid(sticky="w", padx=20)
 
         texts = self._client.openConversation(self._channelID)[0]
@@ -332,7 +337,16 @@ class chatGUI(tk.Toplevel):
 
         self._lastPollTime = time.time()
 
-        lastLogin = self._client.getLastLogin(self._user2ID)
+        lastLogin = self._client.getLastLogin(self._user2ID)[0]
+        if lastLogin == 0:
+            self._lastLoginLabel.config(text="Online", fg="green")
+        else:
+            cur = time.time()
+            difference = cur - lastLogin
+            if divmod(difference, 3600)[0] == 0:
+                self._lastLoginLabel.config(text=f"Last online {int(divmod(difference, 60)[0])} minutes ago", fg="black")
+            else:
+                self._lastLoginLabel.config(text=f"Last online {int(divmod(difference, 3600)[0])} hours ago", fg="black")
 
         self.after(chatGUI.DELAY_TIME, self.receiveMessage)
 
@@ -369,6 +383,8 @@ class loginGUI(tk.Tk):
         if self._userID == None:
             tkmb.showerror("Error", "Login failed. Please check your username and password and try again")
             self._client.disconnect()
+            self._usernameEntry.delete(0, tk.END)
+            self._passwordEntry.delete(0, tk.END)
         else:
             main = MainGUI(self, self._client, self._userID, self._usernameVar.get())
 

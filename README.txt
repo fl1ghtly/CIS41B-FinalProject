@@ -33,7 +33,10 @@ Files:
 
 New Features:
     src/gui.py
-        ...
+        - Implementation of a menu widget to store options for users to change their
+        nickname and register new accounts
+        - Implementation of text widgets in order to display the texts
+        sent between users
 
 
 

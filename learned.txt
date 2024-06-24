@@ -12,3 +12,15 @@ James Nguyen
     as it was clear what needed to be done.
 
 Tony Bai
+    I'm very much the same way. For the past labs I would like to just start
+    writing and figure things out along the way instead of planning things out.
+    That's not to say I don't put thoughts and plans into the code I am writing, 
+    it's just that I don't write those plans down. James was the one to suggest 
+    starting with writing function headers first them populate the functions
+    later, which gave me a bit of a hard time at the beginning since we didn't
+    plan so much such that we wrote down how each function will interact with 
+    each other, but as the app was being written the function headers and 
+    planning made the process go a lot smoother. Although we didn't have the 
+    planning and foresight to make a function header for all the functions that
+    we eventually wrote so I still wrote a few full functions along the way, 
+    but the planning was still worth it.

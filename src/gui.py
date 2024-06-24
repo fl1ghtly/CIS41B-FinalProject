@@ -166,6 +166,11 @@ class MainGUI(tk.Toplevel):
             # get the userID that corresponds with the user given username
             userID = self._client.receiveUserID(username)[0]
 
+            if username == self._username:
+                tkmb.showerror("Error", "Cannot start conversation with yourself")
+                createWin.focus_set()
+                return
+
             # if the channel already exists and is visible to the user
             if (username, userID) in self._usernamesList and self._visibility[self._usernamesList.index((username, userID))]:
                 tkmb.showinfo("Notice", "Channel already exists")

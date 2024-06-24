@@ -99,8 +99,9 @@ class MainGUI(tk.Toplevel):
                     # remove it from the database
                     self._client.removeConversation(channelID[0])
 
+                users = [item[0] for item in self._usernamesList]
                 LB.delete(0, tk.END)
-                LB.insert(tk.END, *self._usernamesList)
+                LB.insert(tk.END, *users)
 
                 removeWin.destroy()
 

@@ -19,7 +19,7 @@ class Server:
         while True:
             (clientSocket, address) = self._serverSocket.accept()
             print(f'New Connection at address: {address}')
-            thread = threading.Thread(target=self.serveClient, args=(clientSocket,), daemon=True)
+            thread = threading.Thread(target=self.serveClient, args=(clientSocket,))
             self._threads.append(thread)
             thread.start()
         
@@ -52,7 +52,7 @@ class Server:
         with self._lock:
             Database.onServerClose()
 
-        # Close the server
+        # Close the listening socket
         self._serverSocket.close()
         
     def sendNewMessages(self, channelID: int, lastPollTime: float) -> list[tuple]:
@@ -124,6 +124,7 @@ class Server:
         self.updateLastLogin(userID, time.time())
         
         # Close the client's connection if it wasn't already
+        connection.shutdown(socket.SHUT_RDWR)
         connection.close()
 
     def serveClient(self, connection: socket.socket) -> None:

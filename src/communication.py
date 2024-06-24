@@ -48,5 +48,5 @@ def sendResponse(connection: socket.socket, actionID: int = None, *args) -> bool
         # Send the message itself
         connection.sendall(byte)
         return True
-    except ConnectionResetError:
+    except (ConnectionResetError, ConnectionAbortedError):
         return False

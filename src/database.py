@@ -57,9 +57,12 @@ class Database:
     def addConversation(user1: int, user2: int) -> None:
         '''creates a new channel between user1 and user2'''
         # called by server.py - handleAddConversation
+        lesser = user1 if user1 < user2 else user2
+        greater = user1 if user1 > user2 else user2
 
+        # Always have user1_id < user2_id for comparison purposes later
         Database.CUR.execute('''INSERT INTO ChannelDB (user1_id, user2_id, user1_display, user2_display) VALUES (?, ?, ?, ?)''',
-                             (user1, user2, 1, 1))
+                             (lesser, greater, 1, 1))
         Database.CONN.commit()
 
 
@@ -221,7 +224,7 @@ if __name__ == '__main__':
     cur.execute("DROP TABLE IF EXISTS UserDB")
     cur.execute('''CREATE TABLE UserDB
                     (user_id INTEGER NOT NULL PRIMARY KEY,
-                    username TEXT,
+                    username TEXT UNIQUE,
                     last_login REAL,
                     password TEXT)''')
     
@@ -231,4 +234,5 @@ if __name__ == '__main__':
                     user1_id INTEGER,
                     user2_id INTEGER,
                     user1_display INTEGER,
-                    user2_display INTEGER)''')
+                    user2_display INTEGER,
+                    UNIQUE(user1_id, user2_id) ON CONFLICT IGNORE)''')

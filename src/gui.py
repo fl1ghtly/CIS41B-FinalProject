@@ -30,10 +30,10 @@ class MainGUI(tk.Toplevel):
         # create listbox to display past conversations
         LB = tk.Listbox(F1, height=10, width=20, yscrollcommand=S.set)
         self._usernamesList: list[tuple[str, int]] = self._client.receiveUsernames()[0]
-        visibility = self._client.getVisibility()[0]
+        self._visibility = self._client.getVisibility()[0]
         if len(self._usernamesList) != 0:
             for i in range(len(self._usernamesList)):
-                if visibility[i]:
+                if self._visibility[i]:
                     username = self._usernamesList[i][0]
                     LB.insert(tk.END, username)
         LB.configure(font=("Courier New", "15"))

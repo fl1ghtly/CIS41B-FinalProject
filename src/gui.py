@@ -5,6 +5,7 @@ import client
 import time
 
 class MainGUI(tk.Toplevel):
+    DELAY_TIME = 10000
     def __init__(self, master: tk.Tk, connection: client.Client, userID: int, username: str):
         '''creates the main chat app window'''
 
@@ -60,6 +61,8 @@ class MainGUI(tk.Toplevel):
         settings.add_command(label="Edit Nickname", command=self._changeNickname)
         settings.add_command(label="Register New Account", command=self._createUser)
         self.config(menu=menu)
+
+        self.after(MainGUI.DELAY_TIME, lambda: self._getNewConvos(LB))
 
 
  
@@ -241,6 +244,23 @@ class MainGUI(tk.Toplevel):
         '''creates a new user in the system'''
         registrationWin = RegistrationGUI(self, self._client)
         self.wait_window(registrationWin)
+
+    
+
+    def _getNewConvos(self, LB: tk.Listbox) -> None:
+        '''poll for changes in conversation list'''
+        print("polling")
+        LB.delete(0, tk.END)
+        self._usernamesList = self._client.receiveUsernames()[0]
+        self._visibility = self._client.getVisibility()[0]
+        if len(self._usernamesList) != 0:
+            for i in range(len(self._usernamesList)):
+                if self._visibility[i]:
+                    username = self._usernamesList[i][0]
+                    LB.insert(tk.END, username)
+
+        self.after(MainGUI.DELAY_TIME, lambda: self._getNewConvos(LB))
+
 
 
 

@@ -64,21 +64,25 @@ class Database:
 
 
 
-    def getVisibility(channelID: int, userID: int) -> bool:
+    def getVisibility(userID: int) -> list[bool]:
         '''gets the visibility of a channel for one user'''
 
-        # get the entire row where channelID matches
-        row = Database.CUR.execute('''SELECT * FROM ChannelDB WHERE channel_id = ?''', (channelID,)).fetchone
-        if row[1] == userID: # if user1_id matches userID...
-            if row[2] == 1: # if user1_visibility is true...
-                return True
-            else: # if user1_visibility is false...
-                return False
-        else:
-            if row[4] == 1:
-                return True
+        # get the rows where userID matches either user1_id or user2_id
+        visibilityList = []
+        rows = Database.CUR.execute('''SELECT * FROM ChannelDB WHERE user1_id = ? OR user2_id = ?''', (userID, userID)).fetchall()
+        for row in rows:
+            if row[1] == userID: # if user1_id matches userID...
+                if row[3] == 1: # if user1_visibility is true...
+                    visibilityList.append(True)
+                else: # if user1_visibility is false...
+                    visibilityList.append(False)
             else:
-                return False
+                if row[4] == 1:
+                    visibilityList.append(True)
+                else:
+                    visibilityList.append(False)
+
+        return visibilityList
 
 
 

@@ -111,6 +111,10 @@ class Server:
         '''Updates the last login time of given userID'''
         return Database.setLastLogin(userID, lastLogin)
     
+    def sendVisibility(self, userID: int) -> list[bool]:
+        '''Returns the visibility of channels of given user'''
+        return Database.getVisibility(userID)
+    
     def handleClientDisconnect(self, connection: socket.socket) -> None:
         # Get the user id and remove the element in the dict
         try:
@@ -144,7 +148,8 @@ class Server:
             communication.REQUEST_CHANNELID: self.sendChannelID,
             communication.REQUEST_USERID: self.sendUserID,
             communication.REQUEST_LAST_LOGIN: self.sendLastLogin,
-            communication.UPDATE_LAST_LOGIN: self.updateLastLogin}
+            communication.UPDATE_LAST_LOGIN: self.updateLastLogin,
+            communication.REQUEST_CHANNEL_VISIBILITY: self.sendVisibility}
         
         while True:
             # NOTE all responses sent to and from the server will be dictionaries

@@ -239,46 +239,8 @@ class MainGUI(tk.Toplevel):
 
     def _createUser(self) -> None:
         '''creates a new user in the system'''
-
-        def submit():
-            username = usernameText.get()
-            password = passwordText.get()
-            usernameEntry.delete(0, tk.END)
-            passwordEntry.delete(0, tk.END)
-            if username not in nickList:
-                self._client.register(username, password)
-                tkmb.showinfo("Successful", "The new user was successfully created")
-                newUserWin.destroy()
-            else:
-                tkmb.showerror("Error", "Duplicate username, please choose another username")
-                newUserWin.focus_set()
-            
-
-        # create a window for creating a new user
-        newUserWin = tk.Toplevel(self)
-        newUserWin.title("Register New User")
-        newUserWin.focus_set()
-        # create a frame to grid labels and entry widgets
-        F = tk.Frame(newUserWin)
-        F.grid(row=1, padx=10)
-
-        # get the list of tuples of all userIDs and usernames
-        users = self._client.receiveProfileUpdates()[0]
-        # get all the usernames
-        nickList: list[str] = [user[1] for user in users]
-        # create StringVars for entry widgets
-        usernameText = tk.StringVar()
-        passwordText = tk.StringVar()
-
-        # populate newUserWin
-        tk.Label(newUserWin, text="Create an account", font=("Courier New", 10)).grid(row=0, pady=10)
-        tk.Label(F, text="Username:").grid(row=0, column=0, pady=3)
-        tk.Label(F, text="Password:").grid(row=1, column=0, pady=3)
-        usernameEntry = tk.Entry(F, textvariable=usernameText)
-        usernameEntry.grid(row=0, column=1)
-        passwordEntry = tk.Entry(F, textvariable=passwordText)
-        passwordEntry.grid(row=1, column=1)
-        tk.Button(newUserWin, text="Submit", command=submit).grid(row=2, pady=10)
+        registrationWin = RegistrationGUI(self, self._client)
+        self.wait_window(registrationWin)
 
 
 
@@ -399,12 +361,13 @@ class loginGUI(tk.Tk):
         registerWin = RegistrationGUI(self, self._client)
         self.wait_window(registerWin)
 
+
+
     def checkCredential(self) -> None:
         self._userID = self._client.login(self._usernameVar.get(), self._passwordVar.get())
 
         if self._userID == None:
             tkmb.showerror("Error", "Login failed. Please check your username and password and try again")
-            self._client.disconnect()
             self._usernameEntry.delete(0, tk.END)
             self._passwordEntry.delete(0, tk.END)
         else:
@@ -424,44 +387,48 @@ class RegistrationGUI(tk.Toplevel):
         super().__init__(master)
         self._master = master
         self._client = client
-
-        self.title('Register')
-        self.focus_set()
-        self.grab_set()
-        self._usernameVar = tk.StringVar()
-        self._passwordVar = tk.StringVar()
-
-        tk.Label(self, text='Register', font=('Helvetica', '20')).grid(row=0, column=0, padx=10, pady=10, columnspan=2)
-        tk.Label(self, text="Username", font=("Helvetica", "12")).grid(row=1, column=0, padx=10)
-        tk.Label(self, text="Password", font=("Helvetica", "12")).grid(row=2, column=0, padx=10)
-
-        self._usernameEntry = tk.Entry(self, textvariable=self._usernameVar)
-        self._passwordEntry = tk.Entry(self, textvariable=self._passwordVar)
-        self._usernameEntry.grid(row=1, column=1, padx=10, pady=10)
-        self._passwordEntry.grid(row=2, column=1, padx=10, pady=10)
-
-        tk.Button(self, text="Register", font=("Helvetica", "15"), command=self.register).grid(row=4, column=0, columnspan=2, padx=10, pady=10)
-
-
-
-    def register(self) -> None:
-        '''Requests the server to register a new account'''
-        success = self._client.register(self._usernameVar.get(), self._passwordVar.get())
-
-        if success:
-            self.destroy()
-            return
         
-        tk.Label(self, 
-                 text='Registration failed. Please try again', 
-                 font=('Helvetica', '12'), 
-                 fg='red').grid(
-                     row=3,
-                     column=0,
-                     padx=10,
-                     columnspan=2
-                 )
+        # create a window for creating a new user
+        self.title("Register New User")
+        self.focus_set()
+        # create a frame to grid labels and entry widgets
+        F = tk.Frame(self)
+        F.grid(row=1, padx=10)
 
+        # create StringVars for entry widgets
+        self._usernameText = tk.StringVar()
+        self._passwordText = tk.StringVar()
+
+        # populate window
+        tk.Label(self, text="Create an account", font=("Courier New", 10)).grid(row=0, pady=10)
+        tk.Label(F, text="Username:").grid(row=0, column=0, pady=3)
+        tk.Label(F, text="Password:").grid(row=1, column=0, pady=3)
+
+        self._usernameEntry = tk.Entry(F, textvariable=self._usernameText)
+        self._usernameEntry.grid(row=0, column=1)
+
+        self._passwordEntry = tk.Entry(F, textvariable=self._passwordText)
+        self._passwordEntry.grid(row=1, column=1)
+
+        tk.Button(self, text="Submit", command=self.submit).grid(row=2, pady=10)
+
+
+
+    def submit(self):
+        '''Submit registration info'''
+        username = self._usernameText.get()
+        password = self._passwordText.get()
+
+        self._usernameEntry.delete(0, tk.END)
+        self._passwordEntry.delete(0, tk.END)
+
+        success = self._client.register(username, password)
+        if success:
+            tkmb.showinfo("Successful", "The new user was successfully created")
+            self.destroy()
+        else:
+            tkmb.showerror("Error", "Duplicate username, please choose another username")
+            self.focus_set()
 
 
 loginGUI().mainloop()

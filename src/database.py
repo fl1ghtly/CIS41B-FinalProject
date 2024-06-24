@@ -76,7 +76,7 @@ class Database:
 
 
     def getLastLogin(userID: int) -> float:
-        '''get teh last login time of a user'''
+        '''get the last login time of a user'''
 
         return Database.CUR.execute('''SELECT last_login FROM UserDB WHERE user_id = ?''', (userID, )).fetchone()[0]
     
@@ -127,12 +127,12 @@ class Database:
         greater = user1 if user1 > user2 else user2
 
         row = Database.CUR.execute('''SELECT * FROM ChannelDB WHERE (user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)''', (user1, user2, user2, user1)).fetchone()
-        if row == None:
+        if row == None: # if a channel already exists between the two, change the visibility
             # Always have user1_id < user2_id for comparison purposes later
             Database.CUR.execute('''INSERT INTO ChannelDB (user1_id, user2_id, user1_display, user2_display) VALUES (?, ?, ?, ?)''',
                                 (lesser, greater, 1, 1))
             Database.CONN.commit()
-        else:
+        else: # if a channel doesn't exist, create a new entry
             Database.CUR.execute('''UPDATE ChannelDB SET user1_display = 1, user2_display = 1 WHERE channel_id = ?''', (row[0],))
 
 

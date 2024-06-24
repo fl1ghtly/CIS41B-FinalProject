@@ -121,14 +121,3 @@ class Client:
         '''Receives the last login time of given userID'''
         response: dict | None = self.sendAction(communication.REQUEST_LAST_LOGIN, userID)
         return self._returnData(response)
-
-if __name__ == '__main__':
-    client = Client()
-    print(client.register('testing', 'password'))
-    print(client.login('testing', 'password'))
-    
-    while True:
-        time.sleep(2)
-        print('alive')
-    
-    #client.disconnect()

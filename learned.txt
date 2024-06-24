@@ -1,0 +1,14 @@
+James Nguyen
+    What I learned from this project is how to plan and excute on an idea.
+    One of the major challenges when starting this project was what
+    needed to happen between the server, client, and the database.
+    Normally, I would have started immediately and figured things out
+    from there, however, since I was working with a partner I knew
+    that strategy could not work. Therefore we spent a day or two
+    just simply planning things out by writing what each component
+    needed to do and what they required in order to do them. Through
+    doing this, the project became much easier to work on them my 
+    usual labs because the planning took a lot of mental load off
+    as it was clear what needed to be done.
+
+Tony Bai

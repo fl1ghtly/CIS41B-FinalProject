@@ -352,8 +352,8 @@ class loginGUI(tk.Tk):
         self._usernameEntry.grid(row=1, column=1, padx=10, pady=10)
         self._passwordEntry.grid(row=2, column=1, padx=10, pady=10)
 
-        tk.Button(self, text="Login", font=("Helvetica", "15"), command=self.checkCredential).grid(row=3, column=0, padx=10, pady=10)
-        tk.Button(self, text="Register", font=("Helvetica", "15"), command=self.openRegistrationWindow).grid(row=3, column=1, padx=10, pady=10)
+        tk.Button(self, text="Login", font=("Helvetica", "12"), command=self.checkCredential).grid(row=3, column=0, padx=10, pady=10, columnspan=2)
+        tk.Button(self, text="Register", font=("Helvetica", "12"), command=self.openRegistrationWindow).grid(row=4, padx=10, pady=10, columnspan=2)
 
 
 

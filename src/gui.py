@@ -153,17 +153,22 @@ class MainGUI(tk.Toplevel):
             usernameEntry.delete(0, tk.END)
             # get the userID that corresponds with the user given username
             userID = self._client.receiveUserID(username)[0]
-            if userID != None: # if the username exists...
-                # create a new conversation
-                self._client.addConversation(username)
-                # insert the nickname into the LB and self._usernamesList
-                LB.insert(tk.END, username)
-                self._usernamesList.append((username, userID))
-                # destroy createWin
+
+            if (username, userID) in self._usernamesList and self._visibility[self._usernamesList.index((username, userID))]:
+                tkmb.showinfo("Notice", "Channel already exists")
                 createWin.destroy()
-            else: # if the username does not exist...
-                tkmb.showerror("Error", "Invalid username, please double check and try again")
-                createWin.focus_set()
+            else:
+                if userID != None: # if the username exists...
+                    # create a new conversation
+                    self._client.addConversation(username)
+                    # insert the nickname into the LB and self._usernamesList
+                    LB.insert(tk.END, username)
+                    self._usernamesList.append((username, userID))
+                    # destroy createWin
+                    createWin.destroy()
+                else: # if the username does not exist...
+                    tkmb.showerror("Error", "Invalid username, please double check and try again")
+                    createWin.focus_set()
 
         # create a window for changing nickname
         createWin = tk.Toplevel(self)
